@@ -1,0 +1,131 @@
+
+Current model - 
+
+Raw Game:
+    - resource 
+    - parameters
+    - resultSets [ 
+        - GAME_ID 
+        - EVENTNUM
+        - EVENTMSGACTIONTYPE
+        - PERIOD
+        - WCTIMESTRING 
+        - PCTIMESTRING
+        - HOMEDSCRIPTION
+        - NEUTRALDSCRIPTION
+        - VISITORDSCRIPITION
+        - SCORE 
+        - SCOREMARGIN 
+    ]
+    - nba-game-id (added by me)
+    - date (added by me)
+
+Raw Odds:
+    - timestamp
+    - previous_timestamp
+    - next_timestamp
+    - data [
+        - id
+        - sport_key
+        - sport_title
+        - commence_title
+        - home_team
+        - away_team
+        - bookmakers {
+            - key
+            - title 
+            - last_update
+            - markets {
+                - key 
+                - last_update 
+                - outcomes {
+                    - name 
+                    - price
+                }
+            }
+        }
+    ]
+    - date-str 
+    - utc-hour 
+
+
+Cleaned Game:
+    - game-id
+    - game-date 
+    - start-time
+    - away-team-init
+    - away-team-id 
+    - home-team-init
+    - home-team-id 
+    - playbyplay [
+        - time 
+        - home-score 
+        - away-score
+    ]
+    - season-id 
+
+
+Cleaned Game w Odds:
+    - game-id
+    - game-date 
+    - start-time
+    - away-team-init
+    - away-team-id 
+    - home-team-init
+    - home-team-id 
+    - playbyplay [
+        - time 
+        - home-score 
+        - away-score
+    ]
+    - season-id
+    - odds-source  
+    - away-ml
+    - away-spread
+    - home-ml
+    - home-spread 
+    - total
+
+
+- I think we can stay with MongoDB for simplicity, bc the cleaned game will have embedded, processed play by play 
+Proposed - 
+Cleaned Game: 
+    game-id: int
+    game-date: date
+    start-time: date 
+    away-team-id: int  
+    home-team-id: int 
+    season-id: int
+
+
+    - playbyplay [
+        - time 
+        - home-score 
+        - away-score
+    ]
+
+Cleaned Team Info: 
+    - team id
+    - team name 
+    - team abbreviation 
+
+Cleaned Odds:
+    - game-id 
+    - odds-source  
+    - away-ml
+    - away-spread
+    - home-ml
+    - home-spread 
+    - total
+
+Analysis Script:
+    - Looks at both cleaned game and cleaned odds, then processes 
+    - probably do this in Python 
+    - can use Pandas? or not, night be simpler to not use
+
+
+
+
+
+
+
