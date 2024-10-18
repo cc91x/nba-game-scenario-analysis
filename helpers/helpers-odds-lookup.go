@@ -55,7 +55,7 @@ func fetchOdds(date string, utcHour int) (oddsResponse *RawOddsResponse, err err
 }
 
 func upsertRawOddsRows(oddsResponse []RawOddsResponse, dbCollection *mongo.Collection) (*mongo.BulkWriteResult, error) {
-	var operations []mongo.WriteModel
+	var operations = make([]mongo.WriteModel, 0, len(oddsResponse))
 	for _, doc := range oddsResponse {
 		operations = append(operations, mongo.NewUpdateOneModel().
 			SetFilter(uniqueOddsFilter(doc.Date, doc.UtcHour)).

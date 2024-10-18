@@ -11,30 +11,6 @@ import (
 )
 
 // load from config
-/*
-var oddsSourceApiKey = "c528d650a3ba67786937ad9a771224cf"
-var oddsSourceBaseUrl = "https://api.the-odds-api.com/v4/historical/sports/basketball_nba/odds/"
-
-// TODO: Alphabetize
-var mongoDbName = "local-nba-project"
-var historicalOddsDbName = "raw_historical_odds"
-var rawGamesDbName = "nba-raw-games"
-var cleanedOddsDbName = "nba-cleaned-odds"
-var cleanedGamesDbName = "nba-cleaned-game-data"
-var teamMetadataDbName = "nba-team-id-mapping"
-
-var gamesCsvName string = "go-game-data.csv"
-var playsCsvName string = "go-play-by-play-data.csv"
-
-var utcHoursForLookup = []int{16, 21, 23}
-
-var bookmakersPriority map[string]int = map[string]int{
-	"fanduel":        1,
-	"draftkings":     2,
-	"williamhill_us": 3,
-	"betmgm":         4,
-}
-*/
 
 func UpsertItemsGeneric(operations []mongo.WriteModel, dbCollection *mongo.Collection) (result *mongo.BulkWriteResult, err error) {
 	if len(operations) == 0 {
@@ -92,7 +68,7 @@ func DateFieldStringFilter(date string) bson.M {
 	return bson.M{"date": date}
 }
 
-func TernaryOperator(condition bool, val1 int, val2 int) int {
+func TernaryOperator[T any](condition bool, val1 T, val2 T) T {
 	if condition {
 		return val1
 	} else {

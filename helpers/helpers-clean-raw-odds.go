@@ -158,7 +158,7 @@ func lookupRawOdds(utcHour int, game CleanedGame, teamIdsToNamesMap map[string]s
 }
 
 func filterAndOrderBookmakers(allBooks []Bookmaker, bookmakersPriority map[string]int) []Bookmaker {
-	var validBooks []Bookmaker
+	var validBooks = make([]Bookmaker, 0, len(bookmakersPriority))
 	for _, book := range allBooks {
 		if _, ok := bookmakersPriority[book.Key]; ok {
 			validBooks = append(validBooks, book)
@@ -244,7 +244,7 @@ func cleanedOddsGameFilter(odds CleanedOdds) bson.M {
 }
 
 func upsertGameOdds(odds []CleanedOdds, dbCollection *mongo.Collection) (err error) {
-	var operations []mongo.WriteModel
+	var operations = make([]mongo.WriteModel, 0, len(odds))
 	for _, game := range odds {
 		operations = append(operations, mongo.NewUpdateOneModel().
 			SetFilter(cleanedOddsGameFilter(game)).

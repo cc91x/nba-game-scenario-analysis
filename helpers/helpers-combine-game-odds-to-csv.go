@@ -115,7 +115,7 @@ func upsertCsv(csvName string, rowsToInsert map[string][]string, getKey func([]s
 
 func cleanedGamesQueryFilter(games []CleanedGame) bson.M {
 	// consider making this a generic map() call (as in stream map filter) and inline
-	var gameIds []string
+	var gameIds = make([]string, 0, len(games))
 	for _, game := range games {
 		gameIds = append(gameIds, game.GameId)
 	}

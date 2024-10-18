@@ -40,23 +40,24 @@ date ---																	---> combine game data with odds data into CSVs ---> an
 // go run main.go --date= --process=fetch_raw_games
 
 // TODOS:
-// Convert every var arr [] to a pre allocated size
-// Get the defer() func working for exiting
+// Get the defer() func working for exiting - https://trstringer.com/golang-deferred-function-error-handling/
 // Go over basic syntax
 // Consistency with naming return values, etc.
 // Decide how to order funcs within a file
 // Make consistent * vs & in return types
 // add seasons to everywhere
-// add config file
+// add config file ... could use something like viper, but how would we keep it isolated in the constants file, and not main?
+//         -> I guess we can, using the init() function ... will have to try
 // clean up db field names, and consider making them constants
-// file organization, create a file for just constants, and another for helper funcs (right now they are one)
 // move the db getter funcs to be one
-// return if else with my ternary operator
 // see if it is possible to make short functions into one line variables. i.e func1 := func(s string) string { return s + "test" }
 
 // DONE FROM TODO:
 // make the process names an enum,
 // add a comment depicting the flow of the data with the DB names
+// Convert every var arr [] to a pre allocated size
+// file organization, create a file for just constants, and another for helper funcs (right now they are one)
+// return if else with my ternary operator
 
 import (
 	"flag"
