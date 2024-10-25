@@ -27,13 +27,13 @@ func CleanGames(date string) (err error) {
 	// this needs work - with handling the error
 	defer CloseMongoDBConnection(client, err)
 
-	sourceColl := client.Database(mongoDbName).Collection(rawGamesDbName)
-	rawGames, err := lookupGames(date, sourceColl)
+	rawGamesCollection := getRawGamesCollection(client)
+	rawGames, err := lookupGames(date, rawGamesCollection)
 	if err != nil {
 		return err
 	}
 
-	teamAbbrevIdMap, err := buildTeamIdMap(client.Database(mongoDbName).Collection(teamMetadataDbName))
+	teamAbbrevIdMap, err := buildTeamIdMap(getTeamMetadataCollection(client))
 	if err != nil {
 		return err
 	}
@@ -47,7 +47,7 @@ func CleanGames(date string) (err error) {
 		}
 		cleanedGames = append(cleanedGames, *cleanedGame)
 	}
-	return upsertItems(cleanedGames, client.Database(mongoDbName).Collection(cleanedGamesDbName))
+	return upsertItems(cleanedGames, getCleanedGamesCollection(client))
 }
 
 func lookupGames(date string, dbCollection *mongo.Collection) (rawGames []RawNbaGame, err error) {
@@ -85,7 +85,7 @@ func cleanGame(game RawNbaGame, teamIds map[string]string) (cleanedGame *Cleaned
 		AwayTeamId: awayTeam,
 		HomeTeamId: homeTeam,
 		PlayByPlay: processedPlayByPlay,
-		SeasonId:   "seasonId", // add in the raw game extract - how about an identifier for season type? can leave for now... can hardcode, or store in DB, or just put Regular
+		SeasonId:   game.SeasonId,
 	}, nil
 }
 

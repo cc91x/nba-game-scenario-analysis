@@ -4,10 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"gopkg.in/yaml.v3"
 )
 
 // load from config
@@ -68,6 +70,7 @@ func DateFieldStringFilter(date string) bson.M {
 	return bson.M{"date": date}
 }
 
+// TODO: ensure this still works
 func TernaryOperator[T any](condition bool, val1 T, val2 T) T {
 	if condition {
 		return val1
@@ -83,4 +86,23 @@ func LookupGamesOnDate(date string, dbCollection *mongo.Collection) (games []Cle
 		return nil, HandleErrors(err1, err2)
 	}
 	return
+}
+
+// TODO: from this article https://dev.to/ilyakaznacheev/a-clean-way-to-pass-configs-in-a-go-application-1g64
+func ReadFile(configFileName string) (*NbaConfig, error) {
+	f, err := os.Open(configFileName)
+
+	if err != nil {
+		return nil, errors.New("error reading config file")
+	}
+	defer f.Close()
+
+	decoder := yaml.NewDecoder(f)
+
+	var cfg NbaConfig
+	err = decoder.Decode(&cfg)
+	if err != nil {
+		return nil, errors.New("error reading config file")
+	}
+	return &cfg, nil
 }

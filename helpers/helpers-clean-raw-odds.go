@@ -31,11 +31,10 @@ func ProcessRawOdds(date string) error {
 	}
 	defer CloseMongoDBConnection(client, err)
 
-	// TODO: Move loacl to local-nba-project
-	rawOddsCollection := client.Database(mongoDbName).Collection(historicalOddsDbName)
-	cleanedOddsCollection := client.Database(mongoDbName).Collection(cleanedOddsDbName)
-	cleanedGamesCollection := client.Database(mongoDbName).Collection(cleanedGamesDbName)
-	teamMetadataCollection := client.Database(mongoDbName).Collection(teamMetadataDbName)
+	rawOddsCollection := getHistoricalOddscollection(client)
+	cleanedOddsCollection := getCleanedOddsCollection(client)
+	cleanedGamesCollection := getCleanedOddsCollection(client)
+	teamMetadataCollection := getTeamMetadataCollection(client)
 
 	// Need a better plan for how to go about this
 	/*
@@ -267,6 +266,10 @@ func fetchTeamNameToIds(dbCollection *mongo.Collection) (res map[string]string, 
 	return
 }
 
+// TODO: Is this common?
 func rawOddsDbFilter(date string, utcHour int) bson.M {
-	return bson.M{"date-str": date, "utc-hour": utcHour}
+	return bson.M{
+		"date-str": date,
+		"utc-hour": utcHour,
+	}
 }

@@ -44,13 +44,13 @@ date ---																	---> combine game data with odds data into CSVs ---> an
 // Go over basic syntax
 // Consistency with naming return values, etc.
 // Decide how to order funcs within a file
-// Make consistent * vs & in return types
-// add seasons to everywhere
+// Make consistent * vs & in return types - should make all lists a pointer
+// add seasons to everywhere. Add it to the python analysis file, then test with latest game data from 10-22-2024. Do this after we've finished everything else
 // add config file ... could use something like viper, but how would we keep it isolated in the constants file, and not main?
 //         -> I guess we can, using the init() function ... will have to try
-// clean up db field names, and consider making them constants
-// move the db getter funcs to be one
-// see if it is possible to make short functions into one line variables. i.e func1 := func(s string) string { return s + "test" }
+//			-> now need to implement it everywhere
+// More formal logging ... instead of fmt.println
+// clean up db field names. Need to run aggregation pipelines on the fields I am naming myself with -. It's ok to leave the default fields in the format they come in
 
 // DONE FROM TODO:
 // make the process names an enum,
@@ -58,6 +58,7 @@ date ---																	---> combine game data with odds data into CSVs ---> an
 // Convert every var arr [] to a pre allocated size
 // file organization, create a file for just constants, and another for helper funcs (right now they are one)
 // return if else with my ternary operator
+// move the db getter funcs to be one - but this is a bit of a stretch
 
 import (
 	"flag"
@@ -66,6 +67,12 @@ import (
 )
 
 func main() {
+
+	cfg, err := helpers.ReadFile("go-config.yaml")
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(cfg.Database.Name)
 
 	processName := flag.String("process", "", "Specify the process to run")
 	date := flag.String("date", "", "Specify the game date to run")

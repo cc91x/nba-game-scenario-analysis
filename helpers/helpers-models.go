@@ -32,6 +32,7 @@ type RawNbaGame struct {
 	PlayByPlayRows bson.A     `bson:"raw-play-by-play"` // should this just be a bson? ... or
 	Date           string     `bson:"date"`
 	Matchup        string     `bson:"matchup"` // this should be "Bos vs Mia", copied from the season data script
+	SeasonId       string     `bson:"season-id"`
 }
 
 type Parameters struct {
@@ -123,6 +124,7 @@ type PointSpread struct {
 
 type GameCsv struct {
 	GameId               string
+	SeasonId             string
 	Date                 string
 	StartTime            string
 	AwayTeamAbbreviation string
@@ -145,4 +147,16 @@ type PlayByPlayCsv struct {
 	HomeScore      string // int
 	UnderdogScore  string // int
 	FavoriteScore  string // int
+}
+
+type NbaConfig struct {
+	Database struct {
+		Name string `yaml:"dbName"`
+		Host string `yaml:"host"`
+		Port string `yaml:"port"`
+	} `yaml:"database"`
+	OddsApi struct {
+		BaseUrl string `yaml:"baseUrl"`
+		Key     string `yaml:"key"`
+	} `yaml:"oddsApi"`
 }

@@ -27,9 +27,9 @@ func CombineGamesAndOddsToCsv(date string) error {
 	}
 	defer CloseMongoDBConnection(client, err)
 
-	cleanedOddsCollection := client.Database(mongoDbName).Collection(cleanedOddsDbName)
-	cleanedGamesCollection := client.Database(mongoDbName).Collection(cleanedGamesDbName)
-	teamMetadataCollection := client.Database(mongoDbName).Collection(teamMetadataDbName)
+	cleanedOddsCollection := getCleanedGamesCollection(client)
+	cleanedGamesCollection := getCleanedGamesCollection(client)
+	teamMetadataCollection := getTeamMetadataCollection(client)
 
 	games, err1 := LookupGamesOnDate(date, cleanedGamesCollection)
 	gameToOdds, err2 := lookupOddsForGames(games, cleanedOddsCollection)
@@ -144,6 +144,7 @@ func createGameCsv(game CleanedGame, odds CleanedOdds, teamIdToAbbrev map[string
 
 	return []string{
 		game.GameId,
+		game.SeasonId,
 		game.Date,
 		game.StartTime,
 		teamIdToAbbrev[game.AwayTeamId],

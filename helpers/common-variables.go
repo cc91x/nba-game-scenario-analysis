@@ -1,17 +1,16 @@
 package helpers
 
-import "errors"
+import (
+	"errors"
+
+	"go.mongodb.org/mongo-driver/mongo"
+)
 
 var oddsSourceApiKey = "c528d650a3ba67786937ad9a771224cf"
 var oddsSourceBaseUrl = "https://api.the-odds-api.com/v4/historical/sports/basketball_nba/odds/"
 
 // TODO: Alphabetize
 var mongoDbName = "local-nba-project"
-var historicalOddsDbName = "raw_historical_odds"
-var rawGamesDbName = "nba-raw-games"
-var cleanedOddsDbName = "nba-cleaned-odds"
-var cleanedGamesDbName = "nba-cleaned-game-data"
-var teamMetadataDbName = "nba-team-id-mapping"
 
 var gamesCsvName string = "go-game-data.csv"
 var playsCsvName string = "go-play-by-play-data.csv"
@@ -47,4 +46,30 @@ func ValueOf(processName string) (ProcessType, error) {
 	default:
 		return "", errors.New("found unknown process type")
 	}
+}
+
+var cleanedGamesCollectionName = "nba-cleaned-game-data"
+var cleanedOddsCollectionName = "nba-cleaned-odds"
+var historicalOddsCollectionName = "raw_historical_odds"
+var rawGamesCollectionName = "nba-raw-games"
+var teamMetadataCollectionName = "nba-team-id-mapping"
+
+func getCleanedGamesCollection(client *mongo.Client) *mongo.Collection {
+	return client.Database(mongoDbName).Collection(cleanedGamesCollectionName)
+}
+
+func getCleanedOddsCollection(client *mongo.Client) *mongo.Collection {
+	return client.Database(mongoDbName).Collection(cleanedOddsCollectionName)
+}
+
+func getHistoricalOddscollection(client *mongo.Client) *mongo.Collection {
+	return client.Database(mongoDbName).Collection(historicalOddsCollectionName)
+}
+
+func getRawGamesCollection(client *mongo.Client) *mongo.Collection {
+	return client.Database(mongoDbName).Collection(rawGamesCollectionName)
+}
+
+func getTeamMetadataCollection(client *mongo.Client) *mongo.Collection {
+	return client.Database(mongoDbName).Collection(teamMetadataCollectionName)
 }

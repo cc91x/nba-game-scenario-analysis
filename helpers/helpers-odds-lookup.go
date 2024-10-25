@@ -23,7 +23,7 @@ func OddsLookup(date string) (err error) {
 	if err != nil {
 		return
 	}
-	rawOddsCollection := client.Database(mongoDbName).Collection(historicalOddsDbName)
+	rawOddsCollection := getHistoricalOddscollection(client)
 
 	for _, val := range utcHoursForLookup {
 		err = rawOddsCollection.FindOne(context.TODO(), uniqueOddsFilter(date, val)).Decode(&existingData)
