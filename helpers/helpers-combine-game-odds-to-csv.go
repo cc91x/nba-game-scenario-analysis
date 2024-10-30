@@ -20,8 +20,8 @@ Should work on creating 2 csv's
 		game_id,seconds_elapsed,away_score,home_score,underdog_score,favorite_score
 */
 
-func CombineGamesAndOddsToCsv(date string) error {
-	client, err := LoadMongoDbClient()
+func CombineGamesAndOddsToCsv(date string, config *NbaConfig) error {
+	client, err := LoadMongoDbClient(config)
 	if err != nil {
 		return err
 	}
@@ -184,12 +184,12 @@ func createPlaysCsv(game CleanedGame, odds CleanedOdds) (result [][]string) {
 }
 
 func fetchTeamIdsToAbbreviation(dbCollection *mongo.Collection) (res map[string]string, err error) {
-	results, err := FetchTeamMetadata(dbCollection)
+	teamMetaData, err := FetchTeamMetadata(dbCollection)
 	if err != nil {
 		return nil, err
 	}
 	res = make(map[string]string)
-	for _, result := range results {
+	for _, result := range *teamMetaData {
 		res[strconv.Itoa(result.TeamId)] = result.TeamAbbreviaton
 	}
 	return

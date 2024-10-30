@@ -27,8 +27,11 @@ func UpsertItemsGeneric(operations []mongo.WriteModel, dbCollection *mongo.Colle
 	return
 }
 
-func LoadMongoDbClient() (client *mongo.Client, err error) {
-	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017")
+func LoadMongoDbClient(config *NbaConfig) (client *mongo.Client, err error) {
+	clientUrl := config.Database.Name + "://" + config.Database.Name + ":" + config.Database.Port
+	// clientUrl := "mongodb://localhost:27017"
+
+	clientOptions := options.Client().ApplyURI(clientUrl)
 	client, err = mongo.Connect(context.TODO(), clientOptions)
 	if err != nil {
 		return nil, errors.New("error connecting to mongoDb client")
@@ -37,7 +40,7 @@ func LoadMongoDbClient() (client *mongo.Client, err error) {
 	return
 }
 
-func FetchTeamMetadata(teamInfoCollection *mongo.Collection) (results []TeamIdMapping, err error) {
+func FetchTeamMetadata(teamInfoCollection *mongo.Collection) (results *[]TeamIdMapping, err error) {
 	cursor, err1 := teamInfoCollection.Find(context.TODO(), bson.M{})
 	err2 := cursor.All(context.TODO(), &results)
 

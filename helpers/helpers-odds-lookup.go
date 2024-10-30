@@ -11,24 +11,25 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
+// TODO: Is there a way to use init() and preload the config file, so I'm not passing it everywhere?
 // TODO: Hide this from github so we protect data source...?
-func OddsLookup(date string) (err error) {
+func OddsLookup(date string, config *NbaConfig) (err error) {
+	client, err := LoadMongoDbClient(config)
+	if err != nil {
+		return
+	}
+	rawOddsCollection := getHistoricalOddscollection(client)
+
 	var (
 		existingData  RawOddsResponse
 		oddsResponses []RawOddsResponse
 		rawOdds       *RawOddsResponse
 	)
 
-	client, err := LoadMongoDbClient()
-	if err != nil {
-		return
-	}
-	rawOddsCollection := getHistoricalOddscollection(client)
-
 	for _, val := range utcHoursForLookup {
 		err = rawOddsCollection.FindOne(context.TODO(), uniqueOddsFilter(date, val)).Decode(&existingData)
 		if err == mongo.ErrNoDocuments {
-			rawOdds, err = fetchOdds(date, val)
+			rawOdds, err = fetchOdds(date, val, config)
 			oddsResponses = append(oddsResponses, *rawOdds)
 		}
 		if err != nil {
@@ -40,8 +41,8 @@ func OddsLookup(date string) (err error) {
 }
 
 // TODO: Do I need to do something like &oddsResponse...?
-func fetchOdds(date string, utcHour int) (oddsResponse *RawOddsResponse, err error) {
-	urlString := buildOddsSourceUrl(oddsSourceBaseUrl, oddsSourceApiKey, date, strconv.Itoa(utcHour))
+func fetchOdds(date string, utcHour int, config *NbaConfig) (oddsResponse *RawOddsResponse, err error) {
+	urlString := buildOddsSourceUrl(config, date, strconv.Itoa(utcHour))
 	response, err1 := http.Get(urlString)
 	responseData, err2 := io.ReadAll(response.Body)
 	err3 := json.Unmarshal(responseData, &oddsResponse)
@@ -66,9 +67,9 @@ func upsertRawOddsRows(oddsResponse []RawOddsResponse, dbCollection *mongo.Colle
 }
 
 // TODO: Hide this from git
-func buildOddsSourceUrl(baseUrl string, apiKey string, date string, utcHour string) string {
+func buildOddsSourceUrl(config *NbaConfig, date string, utcHour string) string {
 	// urlString := fmt.Sprintf("https://api.the-odds-api.com/v4/historical/sports/basketball_nba/odds/?apiKey=%s&markets=spreads,totals,h2h&regions=us&date=%sT%d:00:00Z", apiKey, date, utcHour)
-	return baseUrl + "?apiKey=" + apiKey + "&markets=spreads,totals,h2h&regions=us&date=" + date + "T" + utcHour + ":00:00Z"
+	return config.OddsApi.BaseUrl + "?apiKey=" + config.OddsApi.Key + "&markets=spreads,totals,h2h&regions=us&date=" + date + "T" + utcHour + ":00:00Z"
 }
 
 func uniqueOddsFilter(date string, hour int) bson.M {

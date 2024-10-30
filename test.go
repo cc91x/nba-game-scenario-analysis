@@ -42,15 +42,18 @@ date ---																	---> combine game data with odds data into CSVs ---> an
 // TODOS:
 // Get the defer() func working for exiting - https://trstringer.com/golang-deferred-function-error-handling/
 // Go over basic syntax
-// Consistency with naming return values, etc.
+// Consistency with naming return values, etc. -> should name most functions
 // Decide how to order funcs within a file
 // Make consistent * vs & in return types - should make all lists a pointer
+//  	-> running into some issues for maps ... what do we do. Should look at prod examples, or try debugging and seeing if it keeps the same address
+//		-> google / everythings says it's better to pass by value rather than by reference ... so will go for that
 // add seasons to everywhere. Add it to the python analysis file, then test with latest game data from 10-22-2024. Do this after we've finished everything else
-// add config file ... could use something like viper, but how would we keep it isolated in the constants file, and not main?
-//         -> I guess we can, using the init() function ... will have to try
-//			-> now need to implement it everywhere
 // More formal logging ... instead of fmt.println
 // clean up db field names. Need to run aggregation pipelines on the fields I am naming myself with -. It's ok to leave the default fields in the format they come in
+// Add a logging file / directory
+// 	log.New().   logger := log.New(os.Stdout, "INFO: ", log.Ldate|log.Ltime)    logger.printLn
+//
+// See if its worth making any of structs combined into one, like I do with the config struct... I know there are plenty of nested objects
 
 // DONE FROM TODO:
 // make the process names an enum,
@@ -59,6 +62,9 @@ date ---																	---> combine game data with odds data into CSVs ---> an
 // file organization, create a file for just constants, and another for helper funcs (right now they are one)
 // return if else with my ternary operator
 // move the db getter funcs to be one - but this is a bit of a stretch
+// add config file ... could use something like viper, but how would we keep it isolated in the constants file, and not main?
+//         -> I guess we can, using the init() function ... will have to try
+//			-> now need to implement it everywhere
 
 import (
 	"flag"
@@ -68,37 +74,42 @@ import (
 
 func main() {
 
-	cfg, err := helpers.ReadFile("go-config.yaml")
+	cfg, err := helpers.ReadFile(helpers.ConfigFileName)
 	if err != nil {
-		panic(err)
+		errorWithFailure(err)
 	}
 	fmt.Println(cfg.Database.Name)
 
 	processName := flag.String("process", "", "Specify the process to run")
-	date := flag.String("date", "", "Specify the game date to run")
+	date := *flag.String("date", "", "Specify the game date to run")
 	flag.Parse()
-	fmt.Printf("Running process: %s for date: %s", *processName, *date)
+	fmt.Printf("Running process: %s for date: %s", *processName, date)
 
 	// "args": ["--process=clean_games", "--date=2024-03-18"] -> this seems to be working in launch.json
 	processType, err := helpers.ValueOf(*processName)
 	switch processType {
 	case helpers.CleanAllGames:
-		err = helpers.CleanGames(*date)
+		err = helpers.CleanGames(date, cfg)
 	case helpers.FetchRawOdds:
-		err = helpers.OddsLookup(*date)
+		err = helpers.OddsLookup(date, cfg)
 	case helpers.CleanRawOdds:
-		err = helpers.ProcessRawOdds(*date)
+		err = helpers.ProcessRawOdds(date, cfg)
 	case helpers.CombineGameWithOdds:
-		err = helpers.CombineGamesAndOddsToCsv(*date)
+		err = helpers.CombineGamesAndOddsToCsv(date, cfg)
 	default:
 		fmt.Println("Incorrect process type parameter")
 	}
 
 	if err != nil {
 		// Do something with the err here, for airflow
-		panic(err)
+		errorWithFailure(err)
 	}
 
 	// exit gracefully for airflow
 	fmt.Println("Exiting program with success!")
+}
+
+// TODO: Work on it
+func errorWithFailure(err error) {
+	panic(err)
 }

@@ -6,8 +6,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-var oddsSourceApiKey = "c528d650a3ba67786937ad9a771224cf"
-var oddsSourceBaseUrl = "https://api.the-odds-api.com/v4/historical/sports/basketball_nba/odds/"
+var ConfigFileName string = "go-config.yaml"
 
 // TODO: Alphabetize
 var mongoDbName = "local-nba-project"

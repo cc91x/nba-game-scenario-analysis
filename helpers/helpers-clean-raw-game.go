@@ -3,7 +3,6 @@ package helpers
 import (
 	"context"
 	"errors"
-	"fmt"
 	"strconv"
 	"strings"
 
@@ -16,11 +15,9 @@ func gameIdFilter(gameId string) bson.M {
 	return bson.M{"gameId": gameId}
 }
 
-func CleanGames(date string) (err error) {
+func CleanGames(date string, config *NbaConfig) (err error) {
 
-	fmt.Println("in CleanGames")
-
-	client, err := LoadMongoDbClient()
+	client, err := LoadMongoDbClient(config)
 	if err != nil {
 		return err
 	}
@@ -39,8 +36,8 @@ func CleanGames(date string) (err error) {
 	}
 
 	// From ChatGPT - pre allocating the slice length
-	var cleanedGames = make([]CleanedGame, 0, len(rawGames))
-	for _, rawGame := range rawGames {
+	var cleanedGames = make([]CleanedGame, 0, len(*rawGames))
+	for _, rawGame := range *rawGames {
 		cleanedGame, err := cleanGame(rawGame, teamAbbrevIdMap)
 		if err != nil {
 			return err
@@ -50,7 +47,7 @@ func CleanGames(date string) (err error) {
 	return upsertItems(cleanedGames, getCleanedGamesCollection(client))
 }
 
-func lookupGames(date string, dbCollection *mongo.Collection) (rawGames []RawNbaGame, err error) {
+func lookupGames(date string, dbCollection *mongo.Collection) (rawGames *[]RawNbaGame, err error) {
 	cursor, err1 := dbCollection.Find(context.TODO(), DateFieldStringFilter(date))
 	err2 := cursor.All(context.TODO(), &rawGames)
 	if err1 != nil || err2 != nil {
@@ -59,19 +56,19 @@ func lookupGames(date string, dbCollection *mongo.Collection) (rawGames []RawNba
 	return
 }
 
-func buildTeamIdMap(dbCollection *mongo.Collection) (res map[string]string, err error) {
-	results, err := FetchTeamMetadata(dbCollection)
+func buildTeamIdMap(dbCollection *mongo.Collection) (*map[string]string, error) {
+	teamMetadata, err := FetchTeamMetadata(dbCollection)
 	if err != nil {
 		return nil, err
 	}
-	res = make(map[string]string)
-	for _, result := range results {
-		res[result.TeamAbbreviaton] = strconv.Itoa(result.TeamId)
+	teamIdMap := make(map[string]string)
+	for _, result := range *teamMetadata {
+		teamIdMap[result.TeamAbbreviaton] = strconv.Itoa(result.TeamId)
 	}
-	return
+	return &teamIdMap, nil
 }
 
-func cleanGame(game RawNbaGame, teamIds map[string]string) (cleanedGame *CleanedGame, err error) {
+func cleanGame(game RawNbaGame, teamIds *map[string]string) (cleanedGame *CleanedGame, err error) {
 	awayTeam, homeTeam, err2 := extractTeamsFromMatchup(game.Matchup, teamIds)
 	startTime, processedPlayByPlay, err1 := processPlayByPlay(game)
 	if err1 != nil || err2 != nil {
@@ -84,7 +81,7 @@ func cleanGame(game RawNbaGame, teamIds map[string]string) (cleanedGame *Cleaned
 		StartTime:  startTime,
 		AwayTeamId: awayTeam,
 		HomeTeamId: homeTeam,
-		PlayByPlay: processedPlayByPlay,
+		PlayByPlay: *processedPlayByPlay,
 		SeasonId:   game.SeasonId,
 	}, nil
 }
@@ -101,7 +98,7 @@ func upsertItems(cleanedGames []CleanedGame, dbCollection *mongo.Collection) err
 	return err
 }
 
-func processPlayByPlay(game RawNbaGame) (startTime string, playByPlay []PlayByPlay, err error) {
+func processPlayByPlay(game RawNbaGame) (startTime string, playByPlay *[]PlayByPlay, err error) {
 	var plays bson.A = game.PlayByPlayRows
 	var err1 error
 	prevTimeInterval, awayScore, homeScore := int32(-30), 0, 0
@@ -125,6 +122,8 @@ func processPlayByPlay(game RawNbaGame) (startTime string, playByPlay []PlayByPl
 			return "", nil, HandleErrors(err1, err3)
 		}
 
+		// TODO: confirm this works, bc cool if so, does this work?
+		playByPlay := make([]PlayByPlay, 0)
 		for prevTimeInterval+30 <= elapsed {
 			playByPlay = append(playByPlay, PlayByPlay{
 				SecondsElapsed: int32(prevTimeInterval + 30),
@@ -188,7 +187,7 @@ func extractRawPlayFields(element interface{}) (*RawPlay, error) {
 }
 
 // Matchup string will be in the format: 'ATL vs. BOS' or 'ATL @ BOS'
-func extractTeamsFromMatchup(matchup string, teamIds map[string]string) (awayTeam string, homeTeam string, err error) {
+func extractTeamsFromMatchup(matchup string, teamIds *map[string]string) (awayTeam string, homeTeam string, err error) {
 	err = errors.New("error processing team ids from listed matchup")
 
 	dicedMatchup := strings.Split(matchup, " ")
@@ -204,8 +203,8 @@ func extractTeamsFromMatchup(matchup string, teamIds map[string]string) (awayTea
 		awayAbbrev, homeAbbrev = dicedMatchup[2], dicedMatchup[0]
 	}
 
-	awayTeam, ok1 := teamIds[awayAbbrev]
-	homeTeam, ok2 := teamIds[homeAbbrev]
+	awayTeam, ok1 := *teamIds[awayAbbrev]
+	homeTeam, ok2 := *teamIds[homeAbbrev]
 	if !ok1 || !ok2 {
 		return
 	}

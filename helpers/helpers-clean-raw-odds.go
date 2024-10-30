@@ -22,10 +22,10 @@ var spreadKey string = "spreads"
 var totalKey string = "total"
 var overOutcome string = "Over"
 
-func ProcessRawOdds(date string) error {
+func ProcessRawOdds(date string, config *NbaConfig) error {
 	fmt.Println("In clean odds")
 
-	client, err := LoadMongoDbClient()
+	client, err := LoadMongoDbClient(config)
 	if err != nil {
 		return err
 	}
@@ -56,7 +56,7 @@ func ProcessRawOdds(date string) error {
 	var cleanedOdds = make([]CleanedOdds, 0, len(gamesOnDate))
 	for _, game := range gamesOnDate {
 		utcHour, err3 := determineLatestHourBeforeGame(game)
-		rawOdds, err4 := lookupRawOdds(utcHour, game, teamIdsToNamesMap, rawOddsCollection)
+		rawOdds, err4 := lookupRawOdds(utcHour, game, *teamIdsToNamesMap, rawOddsCollection)
 		cleanedOdd, err5 := cleanRawOdds(rawOdds, game)
 
 		if err3 != nil || err4 != nil || err5 != nil {
@@ -156,7 +156,7 @@ func lookupRawOdds(utcHour int, game CleanedGame, teamIdsToNamesMap map[string]s
 	return OddsData{}, errors.New("could not find odds for this game")
 }
 
-func filterAndOrderBookmakers(allBooks []Bookmaker, bookmakersPriority map[string]int) []Bookmaker {
+func filterAndOrderBookmakers(allBooks []Bookmaker, bookmakersPriority map[string]int) *[]Bookmaker {
 	var validBooks = make([]Bookmaker, 0, len(bookmakersPriority))
 	for _, book := range allBooks {
 		if _, ok := bookmakersPriority[book.Key]; ok {
@@ -166,11 +166,11 @@ func filterAndOrderBookmakers(allBooks []Bookmaker, bookmakersPriority map[strin
 	sort.Slice(validBooks, func(i, j int) bool {
 		return bookmakersPriority[validBooks[i].Key] < bookmakersPriority[validBooks[j].Key]
 	})
-	return validBooks
+	return &validBooks
 }
 
 func cleanRawOdds(odds OddsData, game CleanedGame) (cleanedOdds *CleanedOdds, err error) {
-	validBooks := filterAndOrderBookmakers(odds.Bookmakers, bookmakersPriority)
+	validBooks := *filterAndOrderBookmakers(odds.Bookmakers, bookmakersPriority)
 	for _, bookmaker := range validBooks {
 		if len(bookmaker.Markets) == 3 {
 			ml, spread, total := extractOdds(bookmaker, odds.AwayTeam)
@@ -254,13 +254,13 @@ func upsertGameOdds(odds []CleanedOdds, dbCollection *mongo.Collection) (err err
 	return
 }
 
-func fetchTeamNameToIds(dbCollection *mongo.Collection) (res map[string]string, err error) {
-	results, err := FetchTeamMetadata(dbCollection)
+func fetchTeamNameToIds(dbCollection *mongo.Collection) (res *map[string]string, err error) {
+	teamMetadata, err := FetchTeamMetadata(dbCollection)
 	if err != nil {
 		return nil, err
 	}
-	res = make(map[string]string)
-	for _, result := range results {
+	res := make(map[string]string)
+	for _, result := range *teamMetadata {
 		res[strconv.Itoa(result.TeamId)] = result.TeamName
 	}
 	return
