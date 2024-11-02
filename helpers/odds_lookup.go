@@ -13,8 +13,8 @@ import (
 
 // TODO: Is there a way to use init() and preload the config file, so I'm not passing it everywhere?
 // TODO: Hide this from github so we protect data source...?
-func OddsLookup(date string, config *NbaConfig) (err error) {
-	client, err := LoadMongoDbClient(config)
+func OddsLookup(date string) (err error) {
+	client, err := LoadMongoDbClient(*Config)
 	if err != nil {
 		return
 	}
@@ -27,22 +27,23 @@ func OddsLookup(date string, config *NbaConfig) (err error) {
 	)
 
 	for _, val := range utcHoursForLookup {
-		err = rawOddsCollection.FindOne(context.TODO(), uniqueOddsFilter(date, val)).Decode(&existingData)
+		err = rawOddsCollection.FindOne(context.TODO(), rawOddsDbFilter(date, val)).Decode(&existingData)
 		if err == mongo.ErrNoDocuments {
-			rawOdds, err = fetchOdds(date, val, config)
+			rawOdds, err = fetchOdds(date, val)
 			oddsResponses = append(oddsResponses, *rawOdds)
 		}
 		if err != nil {
-			return
+			return err
 		}
 	}
 	_, err = upsertRawOddsRows(oddsResponses, rawOddsCollection)
-	return
+	return err
 }
 
+// "https://api.the-odds-api.comv4/historical/sports/basketball_nba/odds?apiKey=c528d650a3ba67786937ad9a771224cf&markets=spreads,totals,h2h&regions=us&date=2024-10-22T16:00:00Z"
 // TODO: Do I need to do something like &oddsResponse...?
-func fetchOdds(date string, utcHour int, config *NbaConfig) (oddsResponse *RawOddsResponse, err error) {
-	urlString := buildOddsSourceUrl(config, date, strconv.Itoa(utcHour))
+func fetchOdds(date string, utcHour int) (oddsResponse *RawOddsResponse, err error) {
+	urlString := buildOddsSourceUrl(date, strconv.Itoa(utcHour))
 	response, err1 := http.Get(urlString)
 	responseData, err2 := io.ReadAll(response.Body)
 	err3 := json.Unmarshal(responseData, &oddsResponse)
@@ -52,14 +53,14 @@ func fetchOdds(date string, utcHour int, config *NbaConfig) (oddsResponse *RawOd
 	}
 	oddsResponse.Date = date
 	oddsResponse.UtcHour = utcHour
-	return
+	return oddsResponse, nil
 }
 
 func upsertRawOddsRows(oddsResponse []RawOddsResponse, dbCollection *mongo.Collection) (*mongo.BulkWriteResult, error) {
 	var operations = make([]mongo.WriteModel, 0, len(oddsResponse))
 	for _, doc := range oddsResponse {
 		operations = append(operations, mongo.NewUpdateOneModel().
-			SetFilter(uniqueOddsFilter(doc.Date, doc.UtcHour)).
+			SetFilter(rawOddsDbFilter(doc.Date, doc.UtcHour)).
 			SetUpdate(bson.M{"$set": doc}).
 			SetUpsert(true))
 	}
@@ -67,14 +68,7 @@ func upsertRawOddsRows(oddsResponse []RawOddsResponse, dbCollection *mongo.Colle
 }
 
 // TODO: Hide this from git
-func buildOddsSourceUrl(config *NbaConfig, date string, utcHour string) string {
-	// urlString := fmt.Sprintf("https://api.the-odds-api.com/v4/historical/sports/basketball_nba/odds/?apiKey=%s&markets=spreads,totals,h2h&regions=us&date=%sT%d:00:00Z", apiKey, date, utcHour)
-	return config.OddsApi.BaseUrl + "?apiKey=" + config.OddsApi.Key + "&markets=spreads,totals,h2h&regions=us&date=" + date + "T" + utcHour + ":00:00Z"
-}
-
-func uniqueOddsFilter(date string, hour int) bson.M {
-	return bson.M{
-		"date-str": date,
-		"utc-hour": hour,
-	}
+// Make the odds source path in the config?
+func buildOddsSourceUrl(date string, utcHour string) string {
+	return Config.OddsApi.BaseUrl + oddsSourceApiPath + "?apiKey=" + Config.OddsApi.Key + "&markets=spreads,totals,h2h&regions=us&date=" + date + "T" + utcHour + ":00:00Z"
 }

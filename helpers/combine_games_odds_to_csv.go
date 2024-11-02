@@ -20,38 +20,44 @@ Should work on creating 2 csv's
 		game_id,seconds_elapsed,away_score,home_score,underdog_score,favorite_score
 */
 
-func CombineGamesAndOddsToCsv(date string, config *NbaConfig) error {
-	client, err := LoadMongoDbClient(config)
-	if err != nil {
-		return err
+func CombineGamesAndOddsToCsv(date string) (err error) {
+	Logger.Printf("test log from combine games")
+
+	client, err0 := LoadMongoDbClient(*Config)
+	if err0 != nil {
+		return err0
 	}
-	defer CloseMongoDBConnection(client, err)
+	defer func() {
+		if err6 := CloseMongoDBConnection(client, err); err6 != nil {
+			err = err6
+		}
+	}()
 
-	cleanedOddsCollection := getCleanedGamesCollection(client)
-	cleanedGamesCollection := getCleanedGamesCollection(client)
 	teamMetadataCollection := getTeamMetadataCollection(client)
+	cleanedGamesCollection := getCleanedGamesCollection(client)
+	cleanedOddsCollection := getCleanedOddsCollection(client)
 
-	games, err1 := LookupGamesOnDate(date, cleanedGamesCollection)
-	gameToOdds, err2 := lookupOddsForGames(games, cleanedOddsCollection)
 	teamIdToAbbrev, err3 := fetchTeamIdsToAbbreviation(teamMetadataCollection)
+	games, err1 := lookupGamesOnDate(date, cleanedGamesCollection)
+	gameToOdds, err2 := lookupOddsForGames(games, cleanedOddsCollection)
 	if err1 != nil || err2 != nil || err3 != nil {
 		return HandleErrors(err1, err2)
 	}
 
-	gameCsv := make(map[string][]string)
-	playsCsv := make(map[string][]string)
+	gameCsvRows := make(map[string][]string)
+	playsCsvRows := make(map[string][]string)
 	for _, game := range games {
 		gameRow := createGameCsv(game, gameToOdds[game.GameId], teamIdToAbbrev)
-		gameCsv[gameCsvKeyFunc(gameRow)] = gameRow
+		gameCsvRows[gameCsvKeyFunc(gameRow)] = gameRow
 
 		playsRow := createPlaysCsv(game, gameToOdds[game.GameId])
 		for _, row := range playsRow {
-			playsCsv[playsCsvKeyFunc(row)] = row
+			playsCsvRows[playsCsvKeyFunc(row)] = row
 		}
 	}
 
-	err4 := upsertCsv(gamesCsvName, gameCsv, gameCsvKeyFunc)
-	err5 := upsertCsv(playsCsvName, playsCsv, playsCsvKeyFunc)
+	err4 := upsertCsv(gamesCsvName, gameCsvRows, gameCsvKeyFunc)
+	err5 := upsertCsv(playsCsvName, playsCsvRows, playsCsvKeyFunc)
 	if err4 != nil || err5 != nil {
 		return HandleErrors(err4, err5)
 	}
@@ -70,7 +76,8 @@ func upsertCsv(csvName string, rowsToInsert map[string][]string, getKey func([]s
 	var numUpdatedRows int
 	var numNewRows int
 
-	readFile, err1 := os.Open(csvName)
+	fullCsvPath := csvDirectory + "/" + csvName
+	readFile, err1 := os.Open(fullCsvPath)
 	if err1 != nil {
 		return err1
 	}
@@ -97,7 +104,7 @@ func upsertCsv(csvName string, rowsToInsert map[string][]string, getKey func([]s
 		numNewRows += 1
 	}
 
-	writeFile, err3 := os.Create(csvName)
+	writeFile, err3 := os.Create(fullCsvPath)
 	if err3 != nil {
 		return err3
 	}
@@ -114,17 +121,17 @@ func upsertCsv(csvName string, rowsToInsert map[string][]string, getKey func([]s
 }
 
 func cleanedGamesQueryFilter(games []CleanedGame) bson.M {
-	// consider making this a generic map() call (as in stream map filter) and inline
+	// TODO: consider making this a generic map() call (as in stream map filter) and inline
 	var gameIds = make([]string, 0, len(games))
 	for _, game := range games {
 		gameIds = append(gameIds, game.GameId)
 	}
-	return bson.M{"gameid": bson.M{
+	return bson.M{"gameId": bson.M{
 		"$in": gameIds,
 	}}
 }
 
-func lookupOddsForGames(games []CleanedGame, dbCollection *mongo.Collection) (res map[string]CleanedOdds, err error) {
+func lookupOddsForGames(games []CleanedGame, dbCollection *mongo.Collection) (oddsByGame map[string]CleanedOdds, err error) {
 	var odds []CleanedOdds
 	cursor, err1 := dbCollection.Find(context.TODO(), cleanedGamesQueryFilter(games))
 	err2 := cursor.All(context.TODO(), &odds)
@@ -132,11 +139,11 @@ func lookupOddsForGames(games []CleanedGame, dbCollection *mongo.Collection) (re
 		return nil, HandleErrors(err1, err2)
 	}
 
-	res = make(map[string]CleanedOdds)
+	oddsByGame = make(map[string]CleanedOdds)
 	for _, odd := range odds {
-		res[odd.GameId] = odd
+		oddsByGame[odd.GameId] = odd
 	}
-	return
+	return oddsByGame, nil
 }
 
 func createGameCsv(game CleanedGame, odds CleanedOdds, teamIdToAbbrev map[string]string) []string {
@@ -165,12 +172,12 @@ func extractFinalScore(game CleanedGame) (awayScore int, homeScore int) {
 	return lastPlay.AwayScore, lastPlay.HomeScore
 }
 
-func createPlaysCsv(game CleanedGame, odds CleanedOdds) (result [][]string) {
+func createPlaysCsv(game CleanedGame, odds CleanedOdds) (csvRows [][]string) {
 	awayIsFavored := odds.PointSpread.AwaySpread <= 0
 	for _, play := range game.PlayByPlay {
 		underdogScore := TernaryOperator(awayIsFavored, play.HomeScore, play.AwayScore)
 		favoriteScore := TernaryOperator(!awayIsFavored, play.HomeScore, play.AwayScore)
-		result = append(result, []string{
+		csvRows = append(csvRows, []string{
 			game.GameId,
 			strconv.Itoa(int(play.SecondsElapsed)),
 			strconv.Itoa(play.AwayScore),
@@ -180,17 +187,17 @@ func createPlaysCsv(game CleanedGame, odds CleanedOdds) (result [][]string) {
 			strconv.Itoa(favoriteScore - underdogScore),
 		})
 	}
-	return
+	return csvRows
 }
 
-func fetchTeamIdsToAbbreviation(dbCollection *mongo.Collection) (res map[string]string, err error) {
+func fetchTeamIdsToAbbreviation(dbCollection *mongo.Collection) (teamsToAbbrev map[string]string, err error) {
 	teamMetaData, err := FetchTeamMetadata(dbCollection)
 	if err != nil {
 		return nil, err
 	}
-	res = make(map[string]string)
-	for _, result := range *teamMetaData {
-		res[strconv.Itoa(result.TeamId)] = result.TeamAbbreviaton
+	teamsToAbbrev = make(map[string]string)
+	for _, result := range teamMetaData {
+		teamsToAbbrev[strconv.Itoa(result.TeamId)] = result.TeamAbbreviaton
 	}
-	return
+	return teamsToAbbrev, nil
 }

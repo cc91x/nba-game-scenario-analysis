@@ -33,8 +33,9 @@ from enum import Enum
 import csv
 import numpy as np 
 
-GAME_SUMMARY_CSV = 'go-game-data.csv'
-PLAY_BY_PLAY_CSV = 'go-play-by-play-data.csv'
+CSV_DIRECTORY = '/Users/ericwhitehead/Desktop/clag/nba-project-post-mv'
+GAME_SUMMARY_CSV = 'games_summary_data.csv'
+PLAY_BY_PLAY_CSV = 'game_play_by_play_data.csv'
 
 class AnalysisType(Enum):
     INGAME = 1
@@ -114,7 +115,8 @@ def checkCriteria(row, valueGetter, filterValues, filterType):
         
 def loadCsvAndFilter(csvName, filterEnum):
     filteredRows = []
-    with open(f'/Users/ericwhitehead/Desktop/clag/nba-project-post-mv/{csvName}', mode ='r') as file:
+
+    with open(f'{CSV_DIRECTORY}/{csvName}', mode ='r') as file:
         rows = csv.reader(file)
         
         next(rows)

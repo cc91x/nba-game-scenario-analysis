@@ -1,0 +1,3 @@
+game_id,season_id,game_date,start_time,away-team-init,away-team-id,home-team-init,home-team-id,away-ml,home-ml,away-spread,home-spread,away-final-score,home-final-score
+0022400061,22024,2024-10-22,7:36 PM,NYK,1610612752,BOS,1610612738,3.05,1.4,6,1.89,109,132
+0022400062,22024,2024-10-22,10:07 PM,MIN,1610612750,LAL,1610612747,1.89,1.96,-1,1.89,103,110

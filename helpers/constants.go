@@ -2,17 +2,27 @@ package helpers
 
 import (
 	"errors"
+	"log"
 
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-var ConfigFileName string = "go-config.yaml"
+// GLOBALS
+var Logger *log.Logger
+var Config *NbaConfig
+
+// Locals
+var LogFilePath string = "logs/nba-game-data-analysis.txt"
+var configFileName string = "go-config.yaml"
+
+var oddsSourceApiPath string = "/v4/historical/sports/basketball_nba/odds"
 
 // TODO: Alphabetize
 var mongoDbName = "local-nba-project"
 
-var gamesCsvName string = "go-game-data.csv"
-var playsCsvName string = "go-play-by-play-data.csv"
+var csvDirectory string = "csvs"
+var gamesCsvName string = "games_summary_data.csv"
+var playsCsvName string = "game_play_by_play_data.csv"
 
 var utcHoursForLookup = []int{16, 21, 23}
 
@@ -47,11 +57,11 @@ func ValueOf(processName string) (ProcessType, error) {
 	}
 }
 
-var cleanedGamesCollectionName = "nba-cleaned-game-data"
-var cleanedOddsCollectionName = "nba-cleaned-odds"
-var historicalOddsCollectionName = "raw_historical_odds"
-var rawGamesCollectionName = "nba-raw-games"
-var teamMetadataCollectionName = "nba-team-id-mapping"
+var cleanedGamesCollectionName = "cleanedGameData"
+var cleanedOddsCollectionName = "cleanedOdds"
+var historicalOddsCollectionName = "rawHistoricalOdds"
+var rawGamesCollectionName = "rawGames"
+var teamMetadataCollectionName = "teamMetadata"
 
 func getCleanedGamesCollection(client *mongo.Client) *mongo.Collection {
 	return client.Database(mongoDbName).Collection(cleanedGamesCollectionName)

@@ -19,21 +19,23 @@ var amSuffix string = ":00 AM"
 
 var moneylineKey string = "h2h"
 var spreadKey string = "spreads"
-var totalKey string = "total"
+var totalKey string = "totals"
 var overOutcome string = "Over"
 
-func ProcessRawOdds(date string, config *NbaConfig) error {
-	fmt.Println("In clean odds")
-
-	client, err := LoadMongoDbClient(config)
+func ProcessRawOdds(date string) (err error) {
+	client, err := LoadMongoDbClient(*Config)
 	if err != nil {
 		return err
 	}
-	defer CloseMongoDBConnection(client, err)
+	defer func() {
+		if err6 := CloseMongoDBConnection(client, err); err6 != nil {
+			err = err6
+		}
+	}()
 
 	rawOddsCollection := getHistoricalOddscollection(client)
 	cleanedOddsCollection := getCleanedOddsCollection(client)
-	cleanedGamesCollection := getCleanedOddsCollection(client)
+	cleanedGamesCollection := getCleanedGamesCollection(client)
 	teamMetadataCollection := getTeamMetadataCollection(client)
 
 	// Need a better plan for how to go about this
@@ -48,7 +50,7 @@ func ProcessRawOdds(date string, config *NbaConfig) error {
 	*/
 
 	teamIdsToNamesMap, err1 := fetchTeamNameToIds(teamMetadataCollection)
-	gamesOnDate, err2 := LookupGamesOnDate(date, cleanedGamesCollection)
+	gamesOnDate, err2 := lookupGamesOnDate(date, cleanedGamesCollection)
 	if err1 != nil || err2 != nil {
 		return HandleErrors(err1, err2)
 	}
@@ -56,7 +58,7 @@ func ProcessRawOdds(date string, config *NbaConfig) error {
 	var cleanedOdds = make([]CleanedOdds, 0, len(gamesOnDate))
 	for _, game := range gamesOnDate {
 		utcHour, err3 := determineLatestHourBeforeGame(game)
-		rawOdds, err4 := lookupRawOdds(utcHour, game, *teamIdsToNamesMap, rawOddsCollection)
+		rawOdds, err4 := lookupRawOdds(utcHour, game, teamIdsToNamesMap, rawOddsCollection)
 		cleanedOdd, err5 := cleanRawOdds(rawOdds, game)
 
 		if err3 != nil || err4 != nil || err5 != nil {
@@ -68,7 +70,7 @@ func ProcessRawOdds(date string, config *NbaConfig) error {
 	return upsertGameOdds(cleanedOdds, cleanedOddsCollection)
 }
 
-func determineLatestHourBeforeGame(game CleanedGame) (result int, err error) {
+func determineLatestHourBeforeGame(game CleanedGame) (latestHour int, err error) {
 	gameStartTime, err1 := convertDateTimeToStandard(game.StartTime, game.Date, timezoneEstName)
 	for _, utcHour := range utcHoursForLookup {
 		clockTime := strconv.Itoa(utcHour) + amSuffix
@@ -78,10 +80,10 @@ func determineLatestHourBeforeGame(game CleanedGame) (result int, err error) {
 			return 0, HandleErrors(err1, err2)
 		}
 		if gameStartTime.Sub(*utcStartTime).Minutes() > 0 {
-			result = utcHour
+			latestHour = utcHour
 		}
 	}
-	return
+	return latestHour, nil
 }
 
 func isValidClockTimeString(clocktime string) bool {
@@ -103,12 +105,12 @@ func extractTimeUnits(clockTime string) (minute int, hour int, err error) {
 	minute, err1 := strconv.Atoi(clockTime[3:5])
 	hour, err2 := strconv.Atoi(clockTime[:2])
 	if err1 != nil || err2 != nil {
-		err = HandleErrors(err1, err2)
+		return 0, 0, HandleErrors(err1, err2)
 	}
 	if clockTime[6:] == "PM" {
 		hour += 12
 	}
-	return
+	return minute, hour, nil
 }
 
 func extractDateUnits(date string) (year int, month int, day int, err error) {
@@ -121,9 +123,9 @@ func extractDateUnits(date string) (year int, month int, day int, err error) {
 	month, err2 := strconv.Atoi(vals[1])
 	day, err3 := strconv.Atoi(vals[2])
 	if err1 != nil || err2 != nil || err3 != nil {
-		err = HandleErrors(err1, err2, err3)
+		return 0, 0, 0, HandleErrors(err1, err2, err3)
 	}
-	return
+	return year, month, day, nil
 }
 
 func convertDateTimeToStandard(clockTime string, date string, timezone string) (*time.Time, error) {
@@ -156,7 +158,7 @@ func lookupRawOdds(utcHour int, game CleanedGame, teamIdsToNamesMap map[string]s
 	return OddsData{}, errors.New("could not find odds for this game")
 }
 
-func filterAndOrderBookmakers(allBooks []Bookmaker, bookmakersPriority map[string]int) *[]Bookmaker {
+func filterAndOrderBookmakers(allBooks []Bookmaker, bookmakersPriority map[string]int) []Bookmaker {
 	var validBooks = make([]Bookmaker, 0, len(bookmakersPriority))
 	for _, book := range allBooks {
 		if _, ok := bookmakersPriority[book.Key]; ok {
@@ -166,11 +168,11 @@ func filterAndOrderBookmakers(allBooks []Bookmaker, bookmakersPriority map[strin
 	sort.Slice(validBooks, func(i, j int) bool {
 		return bookmakersPriority[validBooks[i].Key] < bookmakersPriority[validBooks[j].Key]
 	})
-	return &validBooks
+	return validBooks
 }
 
 func cleanRawOdds(odds OddsData, game CleanedGame) (cleanedOdds *CleanedOdds, err error) {
-	validBooks := *filterAndOrderBookmakers(odds.Bookmakers, bookmakersPriority)
+	validBooks := filterAndOrderBookmakers(odds.Bookmakers, bookmakersPriority)
 	for _, bookmaker := range validBooks {
 		if len(bookmaker.Markets) == 3 {
 			ml, spread, total := extractOdds(bookmaker, odds.AwayTeam)
@@ -199,7 +201,7 @@ func extractOdds(bookmaker Bookmaker, awayTeam string) (ml MoneyLine, spread Poi
 			fmt.Printf("Unknown market found: %s. Skipping", market.Key)
 		}
 	}
-	return
+	return ml, spread, total
 }
 
 func createMoneyLine(market Market, awayTeam string) (ml MoneyLine) {
@@ -210,7 +212,7 @@ func createMoneyLine(market Market, awayTeam string) (ml MoneyLine) {
 			ml.HomePrice = float32(outcome.Price)
 		}
 	}
-	return
+	return ml
 }
 
 func createSpread(market Market, awayTeam string) (spread PointSpread) {
@@ -223,7 +225,7 @@ func createSpread(market Market, awayTeam string) (spread PointSpread) {
 			spread.HomeSpread = float32(outcome.Price)
 		}
 	}
-	return
+	return spread
 }
 
 func createTotal(market Market) (total Total) {
@@ -235,7 +237,7 @@ func createTotal(market Market) (total Total) {
 		}
 		total.Total = float32(outcome.Point)
 	}
-	return
+	return total
 }
 
 func cleanedOddsGameFilter(odds CleanedOdds) bson.M {
@@ -251,25 +253,17 @@ func upsertGameOdds(odds []CleanedOdds, dbCollection *mongo.Collection) (err err
 			SetUpsert(true))
 	}
 	_, err = UpsertItemsGeneric(operations, dbCollection)
-	return
+	return err
 }
 
-func fetchTeamNameToIds(dbCollection *mongo.Collection) (res *map[string]string, err error) {
+func fetchTeamNameToIds(dbCollection *mongo.Collection) (teamNameToIds map[string]string, err error) {
 	teamMetadata, err := FetchTeamMetadata(dbCollection)
 	if err != nil {
 		return nil, err
 	}
-	res := make(map[string]string)
-	for _, result := range *teamMetadata {
-		res[strconv.Itoa(result.TeamId)] = result.TeamName
+	teamNameToIds = make(map[string]string)
+	for _, result := range teamMetadata {
+		teamNameToIds[strconv.Itoa(result.TeamId)] = result.TeamName
 	}
-	return
-}
-
-// TODO: Is this common?
-func rawOddsDbFilter(date string, utcHour int) bson.M {
-	return bson.M{
-		"date-str": date,
-		"utc-hour": utcHour,
-	}
+	return teamNameToIds, nil
 }

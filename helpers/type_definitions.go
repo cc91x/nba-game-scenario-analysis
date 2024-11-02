@@ -2,14 +2,15 @@ package helpers
 
 import "go.mongodb.org/mongo-driver/bson"
 
+// TODO: Why is the bson not specified here...? is it expecting all lowercase field names...?
 type CleanedGame struct {
-	GameId     string
-	Date       string
-	StartTime  string
-	AwayTeamId string
-	HomeTeamId string
-	PlayByPlay []PlayByPlay
-	SeasonId   string
+	GameId     string       `bson:"gameId"`
+	Date       string       `bson:"date"`
+	StartTime  string       `bson:"startTime"`
+	AwayTeamId string       `bson:"awayTeamId"`
+	HomeTeamId string       `bson:"homeTeamId"`
+	PlayByPlay []PlayByPlay `bson:"playByPlay"`
+	SeasonId   string       `bson:"seasonId"`
 }
 
 type RawPlay struct {
@@ -27,12 +28,14 @@ type PlayByPlay struct {
 
 // These types will work for loading the game data
 type RawNbaGame struct {
+	// GameId         string     `bson:"gameId`
+	// get rid of gameId field...?
 	Resource       string     `bson:"resource"`
 	Parameters     Parameters `bson:"parameters"`
-	PlayByPlayRows bson.A     `bson:"raw-play-by-play"` // should this just be a bson? ... or
+	PlayByPlayRows bson.A     `bson:"rawPlayByPlay"` // should this just be a bson? ... or
 	Date           string     `bson:"date"`
 	Matchup        string     `bson:"matchup"` // this should be "Bos vs Mia", copied from the season data script
-	SeasonId       string     `bson:"season-id"`
+	SeasonId       string     `bson:"seasonId"`
 }
 
 type Parameters struct {
@@ -42,9 +45,9 @@ type Parameters struct {
 }
 
 type TeamIdMapping struct {
-	TeamId          int    `bson:"team-id"`
-	TeamName        string `bson:"team-name"`
-	TeamAbbreviaton string `bson:"team-abbreviation"`
+	TeamId          int    `bson:"teamId"`
+	TeamName        string `bson:"teamName"`
+	TeamAbbreviaton string `bson:"teamAbbreviation"`
 }
 
 // hmmm this should be in the shape of the data returned, not mongo response
@@ -58,8 +61,8 @@ type RawOddsResponse struct {
 	PreviousTimestamp string     `json:"previous_timestamp" bson:"previous_timestamp"`
 	NextTimestamp     string     `json:"next_timestamp" bson:"next_timestamp"`
 	Data              []OddsData `json:"data" bson:"data"`
-	Date              string     `json:"date-str" bson:"date-str"`
-	UtcHour           int        `json:"utc-hour" bson:"utc-hour"`
+	Date              string     `json:"date" bson:"date"`
+	UtcHour           int        `json:"utcHour" bson:"utcHour"`
 }
 
 type OddsData struct {
@@ -92,13 +95,10 @@ type Outcome struct {
 }
 
 type CleanedOdds struct {
-	GameId string `bson:"gameid"`
-	// Date      string - this is on the game id
-	// StartTime string - this is on the game id
-	// seasonId string - this is on the game id
+	GameId      string      `bson:"gameId"`
 	Bookmaker   string      `bson:"bookmaker"`
-	MoneyLine   MoneyLine   `bson:"moneyline"`
-	PointSpread PointSpread `bson:"pointspread"`
+	MoneyLine   MoneyLine   `bson:"moneyLine"`
+	PointSpread PointSpread `bson:"pointSpread"`
 	Total       Total       `bson:"total"`
 }
 

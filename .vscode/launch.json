@@ -10,7 +10,7 @@
             "request": "launch",
             "mode": "auto",
             "program": "${fileDirname}",
-            "args": ["--process=combine_game_and_odds", "--date=2024-03-18"]
+            "args": ["--process=combine_game_and_odds", "--date=2024-10-22"]
         }
     ]
 }
