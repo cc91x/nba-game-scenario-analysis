@@ -93,7 +93,7 @@ class GameFilterFields(FilterField):
     E_FAVORITE_SPREAD_RANGE = (getFavoriteSpread, cfg.PREGAME_FAVORITE_SPREAD_RANGE, FilterType.IN_RANGE)
     E_FAVORITE_ML_RANGE = (getFavoriteMoneyline, cfg.PREGAME_FAVORITE_ML_RANGE, FilterType.IN_RANGE)
     E_MONTHS = (lambda row: int(row[1][2:4]), cfg.MONTHS, FilterType.EQUALITY)
-    # E_SEASONS = (lambda row: row[1], SEASONS, FilterType.EQUALITY)
+    E_SEASONS = (lambda row: row[1], cfg.SEASONS, FilterType.EQUALITY)
 
 class PlayByPlayFilterFields(FilterField): 
     E_IN_GAME_ELAPSED_SECONDS_RANGE = (lambda row: int(row[1]), cfg.IN_GAME_ELAPSED_SECONDS_RANGE, FilterType.IN_RANGE)

@@ -17,7 +17,7 @@ import (
 // Initialize loggers, process type, date, config
 // TODO: Move to it's own file?
 func init() {
-	initializeLogger(LogFilePath)
+	initializeLogger(logFilePath)
 
 	cfg, err := ReadFile(configFileName)
 	if err != nil {
@@ -59,7 +59,7 @@ func LoadMongoDbClient(config NbaConfig) (client *mongo.Client, err error) {
 	return client, nil
 }
 
-func FetchTeamMetadata(teamInfoCollection *mongo.Collection) (teamMetadata []TeamIdMapping, err error) {
+func FetchTeamMetadata(teamInfoCollection *mongo.Collection) (teamMetadata []TeamMetadata, err error) {
 	cursor, err1 := teamInfoCollection.Find(context.TODO(), bson.M{})
 	err2 := cursor.All(context.TODO(), &teamMetadata)
 

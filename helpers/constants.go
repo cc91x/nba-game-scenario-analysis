@@ -7,23 +7,21 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-// GLOBALS
+/* Globals */
 var Logger *log.Logger
 var Config *NbaConfig
 
-// Locals
-var LogFilePath string = "logs/nba-game-data-analysis.txt"
-var configFileName string = "go-config.yaml"
-
+/* Config specific variables */
+var logFilePath string = "logs/nba-game-data-analysis.txt"
+var configFileName string = "go_config.yaml"
 var oddsSourceApiPath string = "/v4/historical/sports/basketball_nba/odds"
 
-// TODO: Alphabetize
-var mongoDbName = "local-nba-project"
-
+/* CSV generation specifics */
 var csvDirectory string = "csvs"
 var gamesCsvName string = "games_summary_data.csv"
 var playsCsvName string = "game_play_by_play_data.csv"
 
+/* Odds sourcing specifics */
 var utcHoursForLookup = []int{16, 21, 23}
 
 var bookmakersPriority map[string]int = map[string]int{
@@ -33,6 +31,7 @@ var bookmakersPriority map[string]int = map[string]int{
 	"betmgm":         4,
 }
 
+/* Process type parameter makeshift enum */
 type ProcessType string
 
 const (
@@ -56,6 +55,10 @@ func ValueOf(processName string) (ProcessType, error) {
 		return "", errors.New("found unknown process type")
 	}
 }
+
+/* Database related constants */
+// TODO: Rename DB
+var mongoDbName = "local-nba-project"
 
 var cleanedGamesCollectionName = "cleanedGameData"
 var cleanedOddsCollectionName = "cleanedOdds"

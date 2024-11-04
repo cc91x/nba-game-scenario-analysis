@@ -11,10 +11,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func gameIdFilter(gameId string) bson.M {
-	return bson.M{"gameId": gameId}
-}
-
 func CleanGames(date string) (err error) {
 	client, err := LoadMongoDbClient(*Config)
 	if err != nil {
@@ -32,7 +28,7 @@ func CleanGames(date string) (err error) {
 	}
 
 	rawGamesCollection := getRawGamesCollection(client)
-	rawGames, err := lookupGames(date, rawGamesCollection)
+	rawGames, err := findRawGames(date, rawGamesCollection)
 	if err != nil {
 		return err
 	}
@@ -48,7 +44,7 @@ func CleanGames(date string) (err error) {
 	return upsertItems(cleanedGames, getCleanedGamesCollection(client))
 }
 
-func lookupGames(date string, dbCollection *mongo.Collection) (rawGames []RawNbaGame, err error) {
+func findRawGames(date string, dbCollection *mongo.Collection) (rawGames []RawNbaGame, err error) {
 	cursor, err1 := dbCollection.Find(context.TODO(), DateFieldStringFilter(date))
 	err2 := cursor.All(context.TODO(), &rawGames)
 	if err1 != nil || err2 != nil {
@@ -114,9 +110,9 @@ func processPlayByPlay(game RawNbaGame) (startTime string, playByPlay []PlayByPl
 			startTime = rawPlay.EstTime
 		}
 
-		elapsed, err3 := elapsedFromGameClock(rawPlay.GameClockTime, rawPlay.Quarter)
+		elapsed, err3 := timeElapsedFromGameClock(rawPlay.GameClockTime, rawPlay.Quarter)
 		if rawPlay.Score != "" {
-			awayScore, homeScore, err1 = parseScores(rawPlay.Score)
+			awayScore, homeScore, err1 = parseScoreString(rawPlay.Score)
 		}
 
 		if err1 != nil || err3 != nil {
@@ -135,19 +131,18 @@ func processPlayByPlay(game RawNbaGame) (startTime string, playByPlay []PlayByPl
 	return startTime, playByPlay, nil
 }
 
-func parseScores(rawScore string) (awayScore int, homeScore int, err error) {
+func parseScoreString(rawScore string) (awayScore int, homeScore int, err error) {
 	split := strings.Split(rawScore, " - ")
 
 	awayScore, err1 := strconv.Atoi(split[0])
 	homeScore, err2 := strconv.Atoi(split[1])
-
 	if err1 != nil || err2 != nil {
 		return 0, 0, errors.New("error trying to parse game score. Expected \"# - #\"")
 	}
 	return awayScore, homeScore, nil
 }
 
-func elapsedFromGameClock(clockTime string, quarter int32) (secondsElapsed int32, err error) {
+func timeElapsedFromGameClock(clockTime string, quarter int32) (secondsElapsed int32, err error) {
 	digits := strings.Split(clockTime, ":")
 	mins, err1 := strconv.Atoi(digits[0])
 	seconds, err2 := strconv.Atoi(digits[1])
@@ -185,7 +180,7 @@ func extractRawPlayFields(element interface{}) (*RawPlay, error) {
 
 }
 
-// Matchup string will be in the format: 'ATL vs. BOS' or 'ATL @ BOS'
+/* param 'matchup' will be in the format: 'ATL vs. BOS' or 'BOS @ ATL' */
 func extractTeamsFromMatchup(matchup string, teamIds map[string]string) (awayTeam string, homeTeam string, err error) {
 	err = errors.New("error processing team ids from listed matchup")
 
@@ -209,4 +204,8 @@ func extractTeamsFromMatchup(matchup string, teamIds map[string]string) (awayTea
 	}
 
 	return awayTeam, homeTeam, nil
+}
+
+func gameIdFilter(gameId string) bson.M {
+	return bson.M{"gameId": gameId}
 }

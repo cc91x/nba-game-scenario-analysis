@@ -2,7 +2,43 @@ package helpers
 
 import "go.mongodb.org/mongo-driver/bson"
 
-// TODO: Why is the bson not specified here...? is it expecting all lowercase field names...?
+/* Config file */
+type NbaConfig struct {
+	Database struct {
+		Name string `yaml:"dbName"`
+		Host string `yaml:"host"`
+		Port string `yaml:"port"`
+	} `yaml:"database"`
+	OddsApi struct {
+		BaseUrl string `yaml:"baseUrl"`
+		Key     string `yaml:"key"`
+	} `yaml:"oddsApi"`
+}
+
+/* Raw game in DB */
+type RawNbaGame struct {
+	Resource       string     `bson:"resource"`
+	Parameters     Parameters `bson:"parameters"`
+	PlayByPlayRows bson.A     `bson:"rawPlayByPlay"`
+	Date           string     `bson:"date"`
+	Matchup        string     `bson:"matchup"`
+	SeasonId       string     `bson:"seasonId"`
+}
+
+type Parameters struct {
+	GameId     string `bson:"GameID"`
+	StarPeriod int32  `bson:"StartPeriod"`
+	EndPeriod  int32  `bson:"EndPeriod"`
+}
+
+type RawPlay struct {
+	EstTime       string
+	GameClockTime string
+	Quarter       int32
+	Score         string
+}
+
+/* Cleaned game, after processing */
 type CleanedGame struct {
 	GameId     string       `bson:"gameId"`
 	Date       string       `bson:"date"`
@@ -13,49 +49,20 @@ type CleanedGame struct {
 	SeasonId   string       `bson:"seasonId"`
 }
 
-type RawPlay struct {
-	EstTime       string
-	GameClockTime string
-	Quarter       int32
-	Score         string
-}
-
 type PlayByPlay struct {
 	SecondsElapsed int32
 	AwayScore      int
 	HomeScore      int
 }
 
-// These types will work for loading the game data
-type RawNbaGame struct {
-	// GameId         string     `bson:"gameId`
-	// get rid of gameId field...?
-	Resource       string     `bson:"resource"`
-	Parameters     Parameters `bson:"parameters"`
-	PlayByPlayRows bson.A     `bson:"rawPlayByPlay"` // should this just be a bson? ... or
-	Date           string     `bson:"date"`
-	Matchup        string     `bson:"matchup"` // this should be "Bos vs Mia", copied from the season data script
-	SeasonId       string     `bson:"seasonId"`
-}
-
-type Parameters struct {
-	GameId     string `bson:"GameID"`
-	StarPeriod int32  `bson:"StartPeriod"`
-	EndPeriod  int32  `bson:"EndPeriod"`
-}
-
-type TeamIdMapping struct {
+/* Team metadata in DB */
+type TeamMetadata struct {
 	TeamId          int    `bson:"teamId"`
 	TeamName        string `bson:"teamName"`
 	TeamAbbreviaton string `bson:"teamAbbreviation"`
 }
 
-// hmmm this should be in the shape of the data returned, not mongo response
-// looks like used here - https://tutorialedge.net/golang/consuming-restful-api-with-go/
-/*
-type oddsResponse struct {
-}
-*/
+/* Response from odds source API */
 type RawOddsResponse struct {
 	Timestamp         string     `json:"timestamp" bson:"timestamp"`
 	PreviousTimestamp string     `json:"previous_timestamp" bson:"previous_timestamp"`
@@ -94,6 +101,7 @@ type Outcome struct {
 	Point float64 `json:"point" bson:"point"`
 }
 
+/* Cleaned odds data, after processing */
 type CleanedOdds struct {
 	GameId      string      `bson:"gameId"`
 	Bookmaker   string      `bson:"bookmaker"`
@@ -120,8 +128,7 @@ type PointSpread struct {
 	HomePrice  float32 `bson:"homePrice"`
 }
 
-// game-id,game-date,start-time,away-team-init,away-team-id,home-team-init,home-team-id,away-ml,away-spread,home-ml,home-spread,total,away-final-score,home-final-score
-
+/* CSV columns */
 type GameCsv struct {
 	GameId               string
 	SeasonId             string
@@ -131,32 +138,19 @@ type GameCsv struct {
 	AwayTeamId           string
 	HomeTeamAbbreviation string
 	HomeTeamId           string
-	AwayMl               string // float32
-	HomeMl               string // float32
-	AwaySpread           string // float32
-	HomeSpread           string // float32
-	AwayFinalScore       string // float32
-	HomeFinalScore       string // float32
+	AwayMl               string
+	HomeMl               string
+	AwaySpread           string
+	HomeSpread           string
+	AwayFinalScore       string
+	HomeFinalScore       string
 }
 
-// game_id,seconds_elapsed,away_score,home_score,underdog_score,favorite_score
 type PlayByPlayCsv struct {
 	GameId         string
-	SecondsElapsed string // int
-	AwayScore      string // int
-	HomeScore      string // int
-	UnderdogScore  string // int
-	FavoriteScore  string // int
-}
-
-type NbaConfig struct {
-	Database struct {
-		Name string `yaml:"dbName"`
-		Host string `yaml:"host"`
-		Port string `yaml:"port"`
-	} `yaml:"database"`
-	OddsApi struct {
-		BaseUrl string `yaml:"baseUrl"`
-		Key     string `yaml:"key"`
-	} `yaml:"oddsApi"`
+	SecondsElapsed string
+	AwayScore      string
+	HomeScore      string
+	UnderdogScore  string
+	FavoriteScore  string
 }
