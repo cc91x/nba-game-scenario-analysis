@@ -62,4 +62,8 @@ the 'airflow' folder is located a Users ericwhitehead airflow - just search airf
 Can open in VS code with Open Folder > Macintosh HD > Library > Frameworks, ... 
     - Set "searching in" to "Macintosh HD" or maybe This Mac...
 
+11-13 to build and run:
+from /go: go build -o ../bin/nba_main_two go/. 
+from /go: ../bin/nba_main --process=combine_game_and_odds --date=2024-10-27 --config=go_config.yaml
+
 

@@ -1,4 +1,4 @@
-# Contains filter parameters for our historical lookup
+""" Contains filter parameters for our data analysis """
 
 # Pregame Filters
 AWAY_TEAM_IDS = []

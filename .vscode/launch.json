@@ -10,7 +10,7 @@
             "request": "launch",
             "mode": "auto",
             "program": "${fileDirname}",
-            "args": ["--process=combine_game_and_odds", "--date=2024-10-22"]
+            "args": ["--process=combine_game_and_odds", "--date=2024-10-22", "--config=go_config.yaml"]
         }
     ]
 }
