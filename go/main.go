@@ -19,6 +19,7 @@ date ---																	---> clean odds, save ---> combine game data with odds 
 
 // TODOS:
 // Update airflow cmd w new directory structure - and try to move the file here
+// include raw games fetch python script here
 // Sanity check python script processing
 // Upload to git, hiding right amount of data
 // Go over basic syntax

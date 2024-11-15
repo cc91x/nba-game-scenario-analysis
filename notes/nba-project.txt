@@ -66,4 +66,17 @@ Can open in VS code with Open Folder > Macintosh HD > Library > Frameworks, ...
 from /go: go build -o ../bin/nba_main_two go/. 
 from /go: ../bin/nba_main --process=combine_game_and_odds --date=2024-10-27 --config=go_config.yaml
 
+See if airflow works from this directory ... 
+-> sample dag not showing up 
+-> see if this is something that can be configured 
+
+Hmm, even with the airflow config as similar as I think it can be to airflow_local, still not working 
+try some more things tn
+
+airflow setup here - 
+export AIRFLOW_HOME=/Users/ericwhitehead/Desktop/clag/nba-project-post-mv/airflow
+airflow users create --username admin --firstname test --lastname admin --role Admin --email test@test.com
+airflow db init
+
+then run scheduler and start webserver
 

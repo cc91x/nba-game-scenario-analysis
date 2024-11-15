@@ -359,3 +359,37 @@
 2024/11/13 20:49:54 combine_games_odds_to_csv.go:171: For csv games_summary_data.csv inserted 0 new rows and updated 0 rows
 2024/11/13 20:49:54 combine_games_odds_to_csv.go:171: For csv game_play_by_play_data.csv inserted 0 new rows and updated 0 rows
 2024/11/13 20:49:54 main.go:79: No errors detected. Exiting with success
+2024/11/14 23:46:14 main.go:60: Running process: fetch_raw_odds for date: 2024-11-14
+2024/11/14 23:46:18 fetch_odds.go:41: Fetched 3 new odds responses from source
+2024/11/14 23:46:18 utils.go:45: Upserted 3 documents
+2024/11/14 23:46:18 main.go:79: No errors detected. Exiting with success
+2024/11/14 23:46:20 main.go:60: Running process: fetch_raw_odds for date: 2024-11-15
+2024/11/14 23:46:22 fetch_odds.go:41: Fetched 3 new odds responses from source
+2024/11/14 23:46:22 utils.go:45: Upserted 3 documents
+2024/11/14 23:46:22 main.go:79: No errors detected. Exiting with success
+2024/11/14 23:46:24 main.go:60: Running process: clean_games for date: 2024-11-14
+2024/11/14 23:46:24 clean_raw_game.go:55: Found 1 games in DB
+2024/11/14 23:46:24 utils.go:45: Upserted 1 documents
+2024/11/14 23:46:24 main.go:79: No errors detected. Exiting with success
+2024/11/14 23:46:24 main.go:60: Running process: clean_games for date: 2024-11-15
+2024/11/14 23:46:25 clean_raw_game.go:55: Found 0 games in DB
+2024/11/14 23:46:25 utils.go:39: Found 0 rows to upsert
+2024/11/14 23:46:25 main.go:79: No errors detected. Exiting with success
+2024/11/14 23:46:25 main.go:60: Running process: clean_raw_odds for date: 2024-11-14
+2024/11/14 23:46:26 utils.go:66: Found 1 processed games in DB
+2024/11/14 23:46:26 utils.go:72: Error: invalid clocktime string
+2024/11/14 23:46:26 main.go:60: Running process: clean_raw_odds for date: 2024-11-15
+2024/11/14 23:46:27 utils.go:66: Found 0 processed games in DB
+2024/11/14 23:46:27 utils.go:39: Found 0 rows to upsert
+2024/11/14 23:46:27 main.go:79: No errors detected. Exiting with success
+2024/11/14 23:51:28 main.go:60: Running process: clean_raw_odds for date: 2024-11-14
+2024/11/14 23:51:28 utils.go:66: Found 1 processed games in DB
+2024/11/14 23:51:28 utils.go:72: Error: invalid clocktime string
+2024/11/14 23:51:30 main.go:60: Running process: combine_game_and_odds for date: 2024-11-15
+2024/11/14 23:51:30 utils.go:66: Found 0 processed games in DB
+2024/11/14 23:51:30 combine_games_odds_to_csv.go:171: For csv games_summary_data.csv inserted 0 new rows and updated 0 rows
+2024/11/14 23:51:30 combine_games_odds_to_csv.go:171: For csv game_play_by_play_data.csv inserted 0 new rows and updated 0 rows
+2024/11/14 23:51:30 main.go:79: No errors detected. Exiting with success
+2024/11/14 23:56:30 main.go:60: Running process: clean_raw_odds for date: 2024-11-14
+2024/11/14 23:56:30 utils.go:66: Found 1 processed games in DB
+2024/11/14 23:56:31 utils.go:72: Error: invalid clocktime string
