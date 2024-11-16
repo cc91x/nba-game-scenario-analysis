@@ -96,6 +96,7 @@ func createGameCsv(game CleanedGame, odds CleanedOdds, teamIdToAbbrev map[string
 		strconv.FormatFloat(float64(odds.MoneyLine.HomePrice), 'f', -2, 32),
 		strconv.FormatFloat(float64(odds.PointSpread.AwaySpread), 'f', -1, 32),
 		strconv.FormatFloat(float64(odds.PointSpread.HomeSpread), 'f', -1, 32),
+		strconv.FormatFloat(float64(odds.Total.Total), 'f', -1, 32),
 		strconv.Itoa(awayScore),
 		strconv.Itoa(homeScore),
 	}

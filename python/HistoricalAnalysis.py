@@ -17,8 +17,9 @@ Game Data CSV Column Indices:
 9: away_spread
 10: home_ml
 11: home_spread
-12: away_final_score
-13: home_final_score
+12: pregame_total
+13: away_final_score
+14: home_final_score
 
 Play By Play CSV Column Indices:
 0: game_id
@@ -28,6 +29,8 @@ Play By Play CSV Column Indices:
 4: underdog_score
 5: favorite_score
 6: favorite_margin
+
+game_id,season_id,game_date,start_time,away_team_init,away_team_id,home_team_init,home_team_id,away_ml,home_ml,away_spread,home_spread,pregame_total,away_final_score,home_final_score
 """
 
 import AnalysisConfig as cfg
@@ -95,6 +98,7 @@ class GameFilterFields(FilterField):
     E_FAVORITE_TEAM_IDS = (getFavoriteId, cfg.FAVORITE_TEAM_IDS, FilterType.EQUALITY)
     E_FAVORITE_SPREAD_RANGE = (getFavoriteSpread, cfg.PREGAME_FAVORITE_SPREAD_RANGE, FilterType.IN_RANGE)
     E_FAVORITE_ML_RANGE = (getFavoriteMoneyline, cfg.PREGAME_FAVORITE_ML_RANGE, FilterType.IN_RANGE)
+    E_TOTAL_RANGE = ( lambda row: row[12], cfg.PREGAME_TOTAL_RANGE, FilterType.IN_RANGE)
     E_MONTHS = (lambda row: int(row[2][2:4]), cfg.MONTHS, FilterType.EQUALITY)
     E_SEASONS = (lambda row: row[1], cfg.SEASONS, FilterType.EQUALITY)
 
@@ -154,8 +158,8 @@ def processResults(gameCsvRows):
     favoriteMargins = []
 
     for game in gameCsvRows:
-        favScore = int(game[12]) if float(game[10]) <= 0 else int(game[13])
-        dogScore = int(game[13]) if float(game[10]) < 0 else int(game[12])
+        favScore = int(game[13]) if float(game[10]) <= 0 else int(game[14])
+        dogScore = int(game[14]) if float(game[10]) < 0 else int(game[13])
         total = favScore + dogScore
         totals.append(total)
         favoriteMargins.append(favScore - dogScore)

@@ -217,7 +217,7 @@ func createSpread(market Market, awayTeam string) (spread PointSpread) {
 			spread.AwaySpread = float32(outcome.Point)
 		} else {
 			spread.HomePrice = float32(outcome.Price)
-			spread.HomeSpread = float32(outcome.Price)
+			spread.HomeSpread = float32(outcome.Point)
 		}
 	}
 	return spread

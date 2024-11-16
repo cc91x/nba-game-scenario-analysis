@@ -2,21 +2,24 @@ from airflow import DAG
 from airflow.operators.bash import BashOperator
 from datetime import datetime, timedelta
 
+# TODO: Input these
+PYTHON_PATH = '/usr/local/bin/python3'
+PROJECT_HOME = '/Users/ericwhitehead/Desktop/clag/nba-project-post-mv'
+
+PYTHON_SCRIPTS_HOME = f'{PROJECT_HOME}/python'
+GO_PACKAGE_HOME = f'{PROJECT_HOME}/go'
+CONFIG_FILE_PATH = '../go/go_config.yaml'
+
+GO_PARAMS = {
+    'home': GO_PACKAGE_HOME, 
+    'config': CONFIG_FILE_PATH 
+}
+
 default_args = {
     'owner': 'airflow',
     'retries': 3,
     'retry_delay': timedelta(minutes=5),    
     'start_date': datetime(2024, 10, 22),
-}
-
-PYTHON_PATH = '/usr/local/bin/python3'
-PYTHON_SCRIPTS_HOME = '/Users/ericwhitehead/Desktop/clag/nba-project/'
-GO_PROJ_HOME = '/Users/ericwhitehead/Desktop/clag/nba-project-post-mv/go'
-CONFIG_FILE_PATH = '../go/go_config.yaml'
-
-GO_PARAMS = {
-    'home': GO_PROJ_HOME, 
-    'config': CONFIG_FILE_PATH 
 }
 
 with DAG(
@@ -28,7 +31,7 @@ with DAG(
     
     fetch_games_task = BashOperator(
         task_id='fetch_games_task',
-        bash_command='cd {{ params.python_dir}} && {{ params.python_path }} go-proj-game-sourcing.py {{ ds }}',
+        bash_command='cd {{ params.python_dir}} && {{ params.python_path }} RawGameDataSourcing.py {{ ds }}',
         params={ 
             'python_dir': PYTHON_SCRIPTS_HOME,
             'python_path': PYTHON_PATH 
@@ -56,7 +59,6 @@ with DAG(
         params=GO_PARAMS
     )
     
-
     combine_games_and_odds_task = BashOperator(
         task_id='combine_games_and_odds_task',
         bash_command='cd {{ params.home }} && ../bin/nba_main --process=combine_game_and_odds --date={{ ds }} --config={{ params.config }}',

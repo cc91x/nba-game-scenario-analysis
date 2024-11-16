@@ -18,3 +18,4 @@ airflow/logs/dag_processor_manager/dag_processor_manager.log
 airflow/logs/scheduler/2024-11-15/nba_project_dag.py.log
 airflow/logs/scheduler/latest
 airflow/webserver_config.py
+/airflow/logs

@@ -8,13 +8,13 @@ import (
 	"io"
 	"log"
 	"os"
+	"time"
 
 	"gopkg.in/yaml.v3"
 )
 
 /* Funcs for setting up globals, parsing command arguments */
 func Setup() (processName string, date string, logFile *os.File) {
-
 	processNameArg := flag.String("process", "", "Specify the process to run")
 	dateArg := flag.String("date", "", "Specify the game date to run")
 	configArg := flag.String("config", "", "Specify the absolute path of the config file")
@@ -30,7 +30,13 @@ func Setup() (processName string, date string, logFile *os.File) {
 	if err != nil {
 		ErrorWithFailure(err)
 	}
-	return *processNameArg, *dateArg, file
+
+	previousDate, err := getPreviousDate(*dateArg)
+	if err != nil {
+		ErrorWithFailure(err)
+	}
+
+	return *processNameArg, previousDate, file
 }
 
 func initializeLogger(filePath string) (*os.File, error) {
@@ -60,4 +66,16 @@ func readConfigFile(configFileName string) (*NbaConfig, error) {
 		return nil, errors.New("error reading config file")
 	}
 	return &cfg, nil
+}
+
+func getPreviousDate(date string) (previousDay string, err error) {
+	layout := "2006-01-02"
+
+	dateAsTime, err := time.Parse(layout, date)
+	if err != nil {
+		return "", errors.New("error processing date parameter")
+	}
+
+	newDate := dateAsTime.AddDate(0, 0, -2)
+	return newDate.Format(layout), nil
 }

@@ -4,7 +4,9 @@ package main
 
 /*
 
-go build -o ../bin/nba_min .
+go build -o ../bin/nba_main .
+
+../bin/nba_main --process=fetch_raw_odds --date=2024-11-16 --config=go_config.yaml
 
          lookup raw game data, save raw      --->    clean game data, save
 		/																   \
@@ -14,11 +16,9 @@ date ---																	---> clean odds, save ---> combine game data with odds 
 */
 
 // How to run this? Do: go run .    from the terminal
-// let's try a switch statement and pass in the process as an argument
 // go run main.go --date= --process=fetch_raw_games
 
 // TODOS:
-// Update airflow cmd w new directory structure - and try to move the file here
 // include raw games fetch python script here
 // Sanity check python script processing
 // Upload to git, hiding right amount of data
