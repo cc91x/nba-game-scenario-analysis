@@ -78,5 +78,5 @@ export AIRFLOW_HOME=/Users/ericwhitehead/Desktop/clag/nba-project-post-mv/airflo
 airflow users create --username admin --firstname test --lastname admin --role Admin --email test@test.com
 airflow db init
 
-then run scheduler and start webserver
+
 

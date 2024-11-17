@@ -8,6 +8,10 @@ go build -o ../bin/nba_main .
 
 ../bin/nba_main --process=fetch_raw_odds --date=2024-11-16 --config=go_config.yaml
 
+we need to do fetch raw game for 10-27 - 11-17
+
+
+
          lookup raw game data, save raw      --->    clean game data, save
 		/																   \
 date ---																	---> clean odds, save ---> combine game data with odds data into CSVs ---> analyze csv data

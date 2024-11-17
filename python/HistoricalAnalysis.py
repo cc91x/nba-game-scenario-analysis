@@ -29,8 +29,6 @@ Play By Play CSV Column Indices:
 4: underdog_score
 5: favorite_score
 6: favorite_margin
-
-game_id,season_id,game_date,start_time,away_team_init,away_team_id,home_team_init,home_team_id,away_ml,home_ml,away_spread,home_spread,pregame_total,away_final_score,home_final_score
 """
 
 import AnalysisConfig as cfg
