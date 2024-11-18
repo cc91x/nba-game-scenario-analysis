@@ -1,5 +1,3 @@
-/*  */
-
 package main
 
 /*
@@ -25,6 +23,7 @@ date ---																	---> clean odds, save ---> combine game data with odds 
 // TODOS:
 // Sanity check python script processing
 // Upload to git, hiding right amount of data
+// Update .gitignore
 
 // DONE FROM TODO:
 // Add log statements everywhere...

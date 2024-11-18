@@ -1,4 +1,4 @@
-/*  */
+/* Project wide constants */
 
 package helpers
 

@@ -1,5 +1,3 @@
-/*  */
-
 package helpers
 
 import "go.mongodb.org/mongo-driver/bson"
