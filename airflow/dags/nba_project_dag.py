@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 # TODO: Populate these 
 # Path to python installation
 PYTHON_PATH = '/usr/local/bin/python3'
-# Path to the root directory of the project
+# Absolute path to the root directory of the project
 PROJECT_HOME = '/Users/ericwhitehead/Desktop/clag/nba-project-post-mv'
 
 PYTHON_SCRIPTS_HOME = f'{PROJECT_HOME}/python'

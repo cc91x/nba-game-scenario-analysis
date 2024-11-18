@@ -1,71 +1,54 @@
-Add a nice README 
+## Background
 
-Using historical data
+I was inspired to create this project while watching the ease in which my Celtics erased 2nd, 3rd and 4th quarters deficits over the course of the 2023-24 season. In fact, it felt like many great NBA teams played like this, handily digging their way out of whatever early to mid game holes they had dug. And with the availability of live, in game NBA betting, I wondered just how likely are these types of comebacks really were, along with all other sorts of in game happenings. If a heavily favored team is down in the 1st, 2nd or 3rd quarter, what is the chance they come back and win? If a 10 point underdog has a lead going into the 4th, how often do they hang on and win? If the two teams combine for only 90 points in the first half, how likely is it they will hit the over? These are the types of questions the project seeks to address with historical data.
 
-Background:
-This project is designed to provide insight into the likelihood of end game results based on an in game scenario. If a heavily favored team is down in the 1st, 2nd or 3rd quarter, what is the chance they come back and win? If the favorite has a 30 point lead in the 3rd, do they expand on the lead or pull their starters and let the margin close? If the two teams combine for only 90 points in the first half, how likely is it they will hit the over? These are the types of scenarios the project seeks to address.
+## Method
 
-Method: 
-The NBA makes their statistics accessible via APIs. Using the python project here swarpatel, we can lookup game logs at the play by play. We can then combine this pregame historical odds data - sourced from a different provider. Note that this project doesn't look at in game odds for a scenario, only pregame.
+The NBA makes their statistics accessible via APIs. With this [python API client](https://github.com/swar/nba_api), we can find practically any piece of information related to the NBA, but for this project, we'll focus on game logs with play by play data. We can also source pregame NBA game odds from a different provider and link them with our individual play by play game data. We then save them as [csvs](csvs) for easier analysis - one for high level game summaries, and another with game scoring at 30 second intervals.
 
-Setup:
-Config file: 
-The properties in /go/go_configl.yaml are needed for the go tasks. Input a MongoDB connection and Odds API key. 
+## Setup
 
-MongoDB section
+The properties in the [config file](go/go_config.yaml) are needed for the go tasks. Input a MongoDB host, port, schema name, and Odds API key. 
+
+### **MongoDB**
+
 MongoDB is used to store the raw and processed data. Connect to a mongoDB instance that has these five collections defined:
-cleanedGameData
-cleanedOdds
-rawGames
-rawHistoricalOdds
-teamMetadata
-Note: the teamMetadata collection needs to be populated before running anything. See the /mongodb/teamMetadata.json for sample data. Specify the host, port and dbName in /go/go_config.yaml
+* cleanedGameData
+* cleanedOdds
+* rawGames
+* rawHistoricalOdds
+* teamMetadata (Note: this collection needs to be populated before running anything. See [teamMetadata.json](mongodb/teamMetadata.json))
 
-Golang section - 
-The golang portion of the project needs to be compiled. 
-From the /go directory, run go build -o ../bin/nba_main .
+### **Golang** 
 
--> should I move the DB name local-nba-project to the go_config file? probably
+The golang package in the project needs to be compiled. From the [go directory](go), run `go build -o ../bin/nba_main .`
 
+### **Python** 
 
+Python files are under the [python directory](python). Ensure relevant packages are installed with `pip install -r requirements.txt`
 
-We use airflow to handle the data sourcing process. The process runs once, nightly, and collects data for the T+2 date.
-Getting Started with Airflow: 
-Install airflow if not already done - https://airflow.apache.org/docs/apache-airflow/stable/start.html
-run: export AIRFLOW_HOME={PROJECT_HOME}/airflow - where PROJECT_HOME is this root directory
-run: airflow users create --username admin --firstname test --lastname admin --role Admin --email test@test.com
-run: did airflow db init 
-in one terminal window: airflow scheduler 
-in another: airflow webserver -p 8080
+### **Airflow**
 
-Update nba_project_dag.py, set variables PYTHON_PATH and PROJECT_HOME
-Heading to http://localhost:8080/home should bring up the airflow UI, where we can trigger the nba_project_dag 
+We use airflow to handle the data sourcing process. The process runs once, nightly, and collects data for the T+2 date. This lets us collect data throughout a season with little activity.
+1. Install airflow if not already installed - https://airflow.apache.org/docs/apache-airflow/stable/start.html
+2. Set `AIRFLOW_HOME` env variable as the absolute path to [/airflow](airflow)
+3. `airflow users create --username admin --firstname test --lastname admin --role Admin --email admin@email.com` - can use other username, password combo
+4. `airflow db init` 
+5. in one terminal: `airflow scheduler` 
+6. in another: `airflow webserver -p 8080`
+7. Update [nba_project_dag.py](airflow/dags/nba_project_dag.py), setting variables `PYTHON_PATH` and `PROJECT_HOME`
 
-Analyzing data: 
-The python script HistoricalAnalysis.py, found under /python, is where we answer the questions propsed under background. We can configure pregame and midgame parameters under AnalysisConfig.py, and this script will then print out the historical probabilities of the end game result. 
+That's it. Heading to http://localhost:8080/home should bring up the airflow UI, where we can trigger **nba_project_dag**. 
 
+### **Analyzing data** 
 
-Running Tasks individually -
+We can run the script [HistoricalAnalysis.py](python/HistoricalAnalysis.py) to give us answers - in the form of historical results - to the questions above. To set a specific scenario, i.e. team X has a 15 point lead in with 6:00 to go in the third, we can set the filters defined in [AnalysisConfig.py](python/AnalysisConfig.py). These filters include both pregame and ingame margins, and are also team and date specific.
 
-Python:
+### **Running tasks individually** 
 
-Python section - 
-Add a requirements.txt file by pip freeze, and provide requirements.txt
-Use Pip install for requirements
-
-There are two relevant python scripts
-    1. RawGameDataSourcing.py - given a date as command line argument, fetches play by play data from the NBA API for games played on (date - 2)
-    2. HistoricalAnalysis.py - used to ... can tune parameters in AnalysisConfig.py 
-These can be found and ran under the /python directory.  
-
-Golang - add building logic:
-There are four relevant golang processes
-1.
-2.
-3.
-4.
-
-for example: go run 
- 
-
-
+If there are issues with airflow, we can run the data sourcing tasks manually. For the golang jobs, we specify the process through a command line argument. This is order they should be run: 
+1. fetch games (python): `python python/RawGameDataSourcing.py 2024-10-24`
+2. fetch odds (go): `bin/nba_main --config=go/go_config.yaml --date=2024-10-24 --process=fetch_raw_odds`
+3. clean games (go): `bin/nba_main --config=go/go_config.yaml --date=2024-10-24 --process=clean_games`
+4. clean odds (go): `bin/nba_main --config=go/go_config.yaml --date=2024-10-24 --process=clean_raw_odds`
+5. combine games and odds to csv (go): `bin/nba_main --config=go/go_config.yaml --date=2024-10-24 --process=combine_game_and_odds`
