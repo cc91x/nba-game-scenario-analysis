@@ -7,6 +7,9 @@
   "teamAbbreviation": "ATL"
 },
 {
+  "_id": {
+    "$oid": "66c7f78aaa69c147dd6df07a"
+  },
   "teamId": 1610612738,
   "teamName": "Boston Celtics",
   "teamAbbreviation": "BOS"

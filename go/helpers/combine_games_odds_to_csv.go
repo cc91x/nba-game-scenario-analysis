@@ -23,9 +23,9 @@ func CombineGamesAndOddsToCsv(date string) (err error) {
 		}
 	}()
 
-	teamMetadataCollection := getTeamMetadataCollection(client)
-	cleanedGamesCollection := getCleanedGamesCollection(client)
-	cleanedOddsCollection := getCleanedOddsCollection(client)
+	teamMetadataCollection := getTeamMetadataCollection(client, Config.Database.Schema)
+	cleanedGamesCollection := getCleanedGamesCollection(client, Config.Database.Schema)
+	cleanedOddsCollection := getCleanedOddsCollection(client, Config.Database.Schema)
 
 	teamIdToAbbrev, err3 := fetchTeamIdsToAbbreviation(teamMetadataCollection)
 	games, err1 := findCleanedGame(date, cleanedGamesCollection)

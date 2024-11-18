@@ -1,5 +1,5 @@
 database:
-    dbName: "mongodb"
+    schema: "local-nba-project"
     host: "localhost"
     port: 27017
     

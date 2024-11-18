@@ -23,7 +23,7 @@ func FetchOdds(date string) (err error) {
 			err = err4
 		}
 	}()
-	rawOddsCollection := getHistoricalOddscollection(client)
+	rawOddsCollection := getHistoricalOddscollection(client, Config.Database.Schema)
 
 	var existingData RawOddsResponse
 	var oddsResponses []RawOddsResponse

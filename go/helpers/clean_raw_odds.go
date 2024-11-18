@@ -35,10 +35,10 @@ func CleanOdds(date string) (err error) {
 		}
 	}()
 
-	rawOddsCollection := getHistoricalOddscollection(client)
-	cleanedOddsCollection := getCleanedOddsCollection(client)
-	cleanedGamesCollection := getCleanedGamesCollection(client)
-	teamMetadataCollection := getTeamMetadataCollection(client)
+	rawOddsCollection := getHistoricalOddscollection(client, Config.Database.Schema)
+	cleanedOddsCollection := getCleanedOddsCollection(client, Config.Database.Schema)
+	cleanedGamesCollection := getCleanedGamesCollection(client, Config.Database.Schema)
+	teamMetadataCollection := getTeamMetadataCollection(client, Config.Database.Schema)
 
 	teamIdsToNamesMap, err1 := fetchTeamNameToIds(teamMetadataCollection)
 	gamesOnDate, err2 := findCleanedGame(date, cleanedGamesCollection)

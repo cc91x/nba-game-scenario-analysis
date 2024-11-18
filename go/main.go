@@ -23,10 +23,8 @@ date ---																	---> clean odds, save ---> combine game data with odds 
 // go run main.go --date= --process=fetch_raw_games
 
 // TODOS:
-// include raw games fetch python script here
 // Sanity check python script processing
 // Upload to git, hiding right amount of data
-// Go over basic syntax
 
 // DONE FROM TODO:
 // Add log statements everywhere...

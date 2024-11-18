@@ -13,7 +13,7 @@ import (
 
 /* MongoDb connection related */
 func loadMongoDbClient(config NbaConfig) (client *mongo.Client, err error) {
-	clientUrl := config.Database.Name + "://" + config.Database.Host + ":" + config.Database.Port
+	clientUrl := "mongodb://" + config.Database.Host + ":" + config.Database.Port
 
 	clientOptions := options.Client().ApplyURI(clientUrl)
 	client, err = mongo.Connect(context.TODO(), clientOptions)

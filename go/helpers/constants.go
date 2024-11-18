@@ -58,30 +58,28 @@ func ValueOf(processName string) (ProcessType, error) {
 }
 
 /* Database related constants */
-var mongoDbName = "local-nba-project"
-
 var cleanedGamesCollectionName = "cleanedGameData"
 var cleanedOddsCollectionName = "cleanedOdds"
 var historicalOddsCollectionName = "rawHistoricalOdds"
 var rawGamesCollectionName = "rawGames"
 var teamMetadataCollectionName = "teamMetadata"
 
-func getCleanedGamesCollection(client *mongo.Client) *mongo.Collection {
-	return client.Database(mongoDbName).Collection(cleanedGamesCollectionName)
+func getCleanedGamesCollection(client *mongo.Client, schemaName string) *mongo.Collection {
+	return client.Database(schemaName).Collection(cleanedGamesCollectionName)
 }
 
-func getCleanedOddsCollection(client *mongo.Client) *mongo.Collection {
-	return client.Database(mongoDbName).Collection(cleanedOddsCollectionName)
+func getCleanedOddsCollection(client *mongo.Client, schemaName string) *mongo.Collection {
+	return client.Database(schemaName).Collection(cleanedOddsCollectionName)
 }
 
-func getHistoricalOddscollection(client *mongo.Client) *mongo.Collection {
-	return client.Database(mongoDbName).Collection(historicalOddsCollectionName)
+func getHistoricalOddscollection(client *mongo.Client, schemaName string) *mongo.Collection {
+	return client.Database(schemaName).Collection(historicalOddsCollectionName)
 }
 
-func getRawGamesCollection(client *mongo.Client) *mongo.Collection {
-	return client.Database(mongoDbName).Collection(rawGamesCollectionName)
+func getRawGamesCollection(client *mongo.Client, schemaName string) *mongo.Collection {
+	return client.Database(schemaName).Collection(rawGamesCollectionName)
 }
 
-func getTeamMetadataCollection(client *mongo.Client) *mongo.Collection {
-	return client.Database(mongoDbName).Collection(teamMetadataCollectionName)
+func getTeamMetadataCollection(client *mongo.Client, schemaName string) *mongo.Collection {
+	return client.Database(schemaName).Collection(teamMetadataCollectionName)
 }

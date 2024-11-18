@@ -24,12 +24,12 @@ func CleanGames(date string) (err error) {
 		}
 	}()
 
-	teamAbbrevIdMap, err := buildTeamIdMap(getTeamMetadataCollection(client))
+	teamAbbrevIdMap, err := buildTeamIdMap(getTeamMetadataCollection(client, Config.Database.Schema))
 	if err != nil {
 		return err
 	}
 
-	rawGamesCollection := getRawGamesCollection(client)
+	rawGamesCollection := getRawGamesCollection(client, Config.Database.Schema)
 	rawGames, err := findRawGames(date, rawGamesCollection)
 	if err != nil {
 		return err
@@ -43,7 +43,7 @@ func CleanGames(date string) (err error) {
 		}
 		cleanedGames = append(cleanedGames, *cleanedGame)
 	}
-	return upsertItems(cleanedGames, getCleanedGamesCollection(client))
+	return upsertItems(cleanedGames, getCleanedGamesCollection(client, Config.Database.Schema))
 }
 
 func findRawGames(date string, dbCollection *mongo.Collection) (rawGames []RawNbaGame, err error) {

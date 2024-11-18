@@ -7,9 +7,9 @@ import "go.mongodb.org/mongo-driver/bson"
 /* Config file */
 type NbaConfig struct {
 	Database struct {
-		Name string `yaml:"dbName"`
-		Host string `yaml:"host"`
-		Port string `yaml:"port"`
+		Schema string `yaml:"schema"`
+		Host   string `yaml:"host"`
+		Port   string `yaml:"port"`
 	} `yaml:"database"`
 	OddsApi struct {
 		BaseUrl string `yaml:"baseUrl"`
