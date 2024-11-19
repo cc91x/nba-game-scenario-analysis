@@ -29,7 +29,7 @@ Python files are under the [python directory](python). Ensure relevant packages 
 
 ### **Airflow**
 
-We use airflow to handle the data sourcing process. The process runs once, nightly, and collects data for the T+2 date. This lets us collect data throughout a season with little activity.
+We use airflow to handle the data sourcing process. The process runs once, nightly, and collects data for the T+2 date. This lets us collect data throughout a season with minimal manual activity.
 1. Install airflow if not already installed - https://airflow.apache.org/docs/apache-airflow/stable/start.html
 2. Set `AIRFLOW_HOME` env variable as the absolute path to [/airflow](airflow)
 3. `airflow users create --username admin --firstname test --lastname admin --role Admin --email admin@email.com` - can use other username, password combo
