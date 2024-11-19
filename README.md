@@ -40,15 +40,15 @@ We use airflow to handle the data sourcing process. The process runs once, night
 
 That's it. Heading to http://localhost:8080/home should bring up the airflow UI, where we can trigger **nba_project_dag**. 
 
-### **Analyzing data** 
-
-Once we've done our data sourcing and poulated the csvs, we can run the script [HistoricalAnalysis.py](python/HistoricalAnalysis.py) to give us answers - in the form of historical results - to the questions above. To set a specific scenario, i.e. team X has a 15 point lead in with 6:00 to go in the third, we can set the filters defined in [AnalysisConfig.py](python/AnalysisConfig.py). These filters include both pregame and ingame margins, and are also team and date specific. This approach is similar to the one defined in [this blog post](https://plusevanalytics.wordpress.com/2024/02/02/sampling-using-tightness-and-boost/), but with the ability to use in game scenarios.
-
 ### **Running tasks individually** 
 
-If there are issues with airflow, we can run the data sourcing tasks manually. For the golang jobs, we specify the process through a command line argument. This is order they should be run: 
+If the airflow setup worked, this section can be skipped. If there are issues with airflow, or if we need to run the tasks manually, we can trigger each sourcing job individually. For the golang jobs, we specify the process through a command line argument. This is order they should be run: 
 1. fetch games (python): `python python/RawGameDataSourcing.py 2024-10-24`
 2. fetch odds (go): `bin/nba_main --config=go/go_config.yaml --date=2024-10-24 --process=fetch_raw_odds`
 3. clean games (go): `bin/nba_main --config=go/go_config.yaml --date=2024-10-24 --process=clean_games`
 4. clean odds (go): `bin/nba_main --config=go/go_config.yaml --date=2024-10-24 --process=clean_raw_odds`
 5. combine games and odds to csv (go): `bin/nba_main --config=go/go_config.yaml --date=2024-10-24 --process=combine_game_and_odds`
+
+### **Analyzing data** 
+
+Once we've done our data sourcing and poulated the csvs, we can run the script [HistoricalAnalysis.py](python/HistoricalAnalysis.py) to give us answers - in the form of historical results - to the questions above. To set a specific scenario, i.e. team X has a 15 point lead in with 6:00 to go in the third, we can set the filters defined in [AnalysisConfig.py](python/AnalysisConfig.py). These filters include both pregame and ingame margins, and are also team and date specific. This approach is similar to the one defined in [this blog post](https://plusevanalytics.wordpress.com/2024/02/02/sampling-using-tightness-and-boost/), but with the ability to use in game scenarios.
