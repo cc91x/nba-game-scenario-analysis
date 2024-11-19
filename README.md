@@ -42,7 +42,7 @@ That's it. Heading to http://localhost:8080/home should bring up the airflow UI,
 
 ### **Analyzing data** 
 
-We can run the script [HistoricalAnalysis.py](python/HistoricalAnalysis.py) to give us answers - in the form of historical results - to the questions above. To set a specific scenario, i.e. team X has a 15 point lead in with 6:00 to go in the third, we can set the filters defined in [AnalysisConfig.py](python/AnalysisConfig.py). These filters include both pregame and ingame margins, and are also team and date specific.
+Once we've done our data sourcing and poulated the csvs, we can run the script [HistoricalAnalysis.py](python/HistoricalAnalysis.py) to give us answers - in the form of historical results - to the questions above. To set a specific scenario, i.e. team X has a 15 point lead in with 6:00 to go in the third, we can set the filters defined in [AnalysisConfig.py](python/AnalysisConfig.py). These filters include both pregame and ingame margins, and are also team and date specific.
 
 ### **Running tasks individually** 
 
