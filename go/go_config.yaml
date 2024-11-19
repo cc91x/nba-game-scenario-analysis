@@ -5,4 +5,4 @@ database:
     
 oddsApi:
     baseUrl: "https://api.the-odds-api.com"
-    key: "c528d650a3ba67786937ad9a771224cf"
+    key: #Input api key here
