@@ -5,9 +5,8 @@
 /airflow/webserver_config.py
 /airflow/logs
 /__pycache__
-.vscode
-/__pycache__
 /.vscode
 /logs
 /python/__pycache__
 .DS_Store
+/notes
