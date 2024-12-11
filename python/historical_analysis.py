@@ -31,13 +31,14 @@ Play By Play CSV Column Indices:
 6: favorite_margin
 """
 
-import AnalysisConfig as cfg
+import analysis_config as cfg
 from enum import Enum
 import csv
 import numpy as np 
 
 
-CSV_DIRECTORY = '../csvs'
+# CSV_DIRECTORY = '../csvs'
+CSV_DIRECTORY = '/Users/ericwhitehead/Desktop/clag/nba-project-post-mv/csvs'
 GAME_SUMMARY_CSV = 'games_summary_data.csv'
 PLAY_BY_PLAY_CSV = 'game_play_by_play_data.csv'
 
@@ -96,8 +97,8 @@ class GameFilterFields(FilterField):
     E_FAVORITE_TEAM_IDS = (getFavoriteId, cfg.FAVORITE_TEAM_IDS, FilterType.EQUALITY)
     E_FAVORITE_SPREAD_RANGE = (getFavoriteSpread, cfg.PREGAME_FAVORITE_SPREAD_RANGE, FilterType.IN_RANGE)
     E_FAVORITE_ML_RANGE = (getFavoriteMoneyline, cfg.PREGAME_FAVORITE_ML_RANGE, FilterType.IN_RANGE)
-    E_TOTAL_RANGE = ( lambda row: row[12], cfg.PREGAME_TOTAL_RANGE, FilterType.IN_RANGE)
-    E_MONTHS = (lambda row: int(row[2][2:4]), cfg.MONTHS, FilterType.EQUALITY)
+    E_TOTAL_RANGE = (lambda row: float(row[12]), cfg.PREGAME_TOTAL_RANGE, FilterType.IN_RANGE)
+    E_MONTHS = (lambda row: int(row[2][5:7]), cfg.MONTHS, FilterType.EQUALITY)
     E_SEASONS = (lambda row: row[1], cfg.SEASONS, FilterType.EQUALITY)
 
 class PlayByPlayFilterFields(FilterField): 
@@ -132,23 +133,24 @@ def loadCsvAndFilter(csvName, filterEnum):
     return filteredRows
 
 def printFilters():
-    print("PREGAME FILTER FIELDS")
+    print("PREGAME FILTER FIELDS:")
     for filt in GameFilterFields:
         if filt.value:
-            print(f'{filt.name[2:]}: {filt.value}')
+            print(f'{filt.name[2:]}={filt.value}')
 
-    print("\nINGAME FILTER FIELDS")
+    print("\nINGAME FILTER FIELDS:")
     for filt in PlayByPlayFilterFields:
         if filt.value:
-            print(f'{filt.name[2:]}: {filt.value}')
+            print(f'{filt.name[2:]}={filt.value}')
     
 
 def printStatistics(data):
     print(f'Sample size: {len(data)} games \n')
-    print(f'Average: {np.average(data)}')
-    print('Deciles -  ')
-    for dec in [10, 20, 30, 40, 50, 60, 70, 80, 90]:
-        print(f'{dec}% {round(np.percentile(data, dec), 2)} pts')
+    if len(data) > 0:
+        print(f'Average: {round(np.average(data), 2)} pts')
+        print('Deciles -  ')
+        for dec in [10, 20, 30, 40, 50, 60, 70, 80, 90]:
+            print(f'{dec}% {round(np.percentile(data, dec), 2)} pts')
 
 
 def processResults(gameCsvRows):

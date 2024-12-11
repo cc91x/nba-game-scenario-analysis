@@ -8,4 +8,3 @@ class SeasonInfo:
 class MongoConfig:
     MONGO_CONNECTION_STRING = 'mongodb://localhost:27017/'
     MONGO_DB_NAME = 'local-nba-project'
-    

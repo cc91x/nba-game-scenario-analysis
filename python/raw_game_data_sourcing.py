@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from enum import Enum
 from pymongo import MongoClient
 import logging
-import SourcingConfig as cfg
+import sourcing_config as cfg
 
 from nba_api.stats.endpoints import teamgamelog
 from nba_api.stats.endpoints import playbyplay
@@ -37,7 +37,7 @@ class SeasonType(Enum):
     @property 
     def name(self):
         return self._name
-
+    
     REGULAR_SEASON = ('2' + cfg.SeasonInfo.SEASON_ID, 'Regular Season')
     PLAYOFFS = ('4' + cfg.SeasonInfo.SEASON_ID, 'Playoffs')
 

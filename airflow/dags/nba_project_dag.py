@@ -4,16 +4,15 @@ from datetime import datetime, timedelta
 
 # TODO: Populate these 
 # Path to python installation
-PYTHON_PATH = ''
+PYTHON_PATH = '/usr/local/bin/python3'
 # Absolute path to the root directory of the project
-PROJECT_HOME = ''
+PROJECT_HOME = '/Users/ericwhitehead/Desktop/clag/nba-project-post-mv'
 
 PYTHON_SCRIPTS_HOME = f'{PROJECT_HOME}/python'
-GO_PACKAGE_HOME = f'{PROJECT_HOME}/go'
-CONFIG_FILE_PATH = '../go/go_config.yaml'
+CONFIG_FILE_PATH = 'go/go_config.yaml'
 
 GO_PARAMS = {
-    'home': GO_PACKAGE_HOME, 
+    'home': PROJECT_HOME, 
     'config': CONFIG_FILE_PATH 
 }
 
@@ -33,7 +32,7 @@ with DAG(
     
     fetch_games_task = BashOperator(
         task_id='fetch_games_task',
-        bash_command='cd {{ params.python_dir}} && {{ params.python_path }} RawGameDataSourcing.py {{ ds }}',
+        bash_command='cd {{ params.python_dir}} && {{ params.python_path }} raw_game_data_sourcing.py {{ ds }}',
         params={ 
             'python_dir': PYTHON_SCRIPTS_HOME,
             'python_path': PYTHON_PATH 
@@ -42,28 +41,28 @@ with DAG(
     
     fetch_odds_task = BashOperator(
         task_id='fetch_raw_odds',
-        bash_command='cd {{ params.home }} && ../bin/nba_main --process=fetch_raw_odds --date={{ ds }} --config={{ params.config }}',
+        bash_command='cd {{ params.home }} && bin/nba_main --process=fetch_raw_odds --date={{ ds }} --config={{ params.config }}',
         env={ 'PATH': '/usr/local/go/bin'},
         params=GO_PARAMS
     )
 
     clean_games_task = BashOperator(
         task_id='clean_games',
-        bash_command='cd {{ params.home }} && ../bin/nba_main --process=clean_games --date={{ ds }} --config={{ params.config }}',
+        bash_command='cd {{ params.home }} && bin/nba_main --process=clean_games --date={{ ds }} --config={{ params.config }}',
         env={ 'PATH': '/usr/local/go/bin'},
         params=GO_PARAMS
     )
 
     clean_odds_task = BashOperator(
         task_id='clean_odds_task',
-        bash_command='cd {{ params.home }} && ../bin/nba_main --process=clean_raw_odds --date={{ ds }} --config={{ params.config }}',
+        bash_command='cd {{ params.home }} && bin/nba_main --process=clean_raw_odds --date={{ ds }} --config={{ params.config }}',
         env={ 'PATH': '/usr/local/go/bin'},
         params=GO_PARAMS
     )
     
     combine_games_and_odds_task = BashOperator(
         task_id='combine_games_and_odds_task',
-        bash_command='cd {{ params.home }} && ../bin/nba_main --process=combine_game_and_odds --date={{ ds }} --config={{ params.config }}',
+        bash_command='cd {{ params.home }} && bin/nba_main --process=combine_game_and_odds --date={{ ds }} --config={{ params.config }}',
         env={ 'PATH': '/usr/local/go/bin'},
         params=GO_PARAMS
     )

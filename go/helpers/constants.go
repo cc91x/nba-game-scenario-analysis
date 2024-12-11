@@ -14,11 +14,11 @@ var Logger *log.Logger
 var Config *NbaConfig
 
 /* Config specific variables */
-var logFilePath string = "../logs/nba_game_processing.log"
+var logFilePath string = "logs/nba_game_processing.log"
 var oddsSourceApiPath string = "/v4/historical/sports/basketball_nba/odds"
 
 /* CSV generation specifics */
-var csvDirectory string = "../csvs"
+var csvDirectory string = "csvs"
 var gamesCsvName string = "games_summary_data.csv"
 var playsCsvName string = "game_play_by_play_data.csv"
 
