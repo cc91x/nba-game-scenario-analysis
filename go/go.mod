@@ -2,7 +2,10 @@ module nba
 
 go 1.23.0
 
-require go.mongodb.org/mongo-driver v1.11.4
+require (
+	go.mongodb.org/mongo-driver v1.11.4
+	gopkg.in/yaml.v3 v3.0.1
+)
 
 require (
 	github.com/golang/snappy v0.0.1 // indirect

@@ -1,40 +1,46 @@
-
 """
-python3 historical-analysis.py 
+This script is for performing basic analysis on the NBA game data with pregame and in-game odds,
+using the two csvs populated by the game and odds data collection and processing jobs. To configure
+pregame and/or in game filters, fill in the fields in AnalysisConfig.py. Empty filters will be ignored. 
+The hardcoded CSV definitions are below
 
-This should open the gameCsv and PlayByPlay csv and put together a report  
+Game Data CSV Column Indices:
+0: game_id
+1: season_id
+2: game_date
+3: start_time
+4: away_team_init
+5: away_team_id
+6: home_team_init
+7: home_team_id
+8: away_ml
+9: away_spread
+10: home_ml
+11: home_spread
+12: pregame_total
+13: away_final_score
+14: home_final_score
 
-- Should take the following arguments
-
-Format - game-id,game-date,start-time,away-team-init,away-team-id,home-team-init,home-team-id,away-ml,away-spread,home-ml,home-spread,total,away-final-score,home-final-score
-For gameCsv:
-    - pregame odds range 
-    - favored team ids 
-    - underdog team ids 
-    - months 
-    - seasons
-
-Format - game_id,seconds_elapsed,away_score,home_score,underdog_score,favorite_score
-For play by play csv:
-    - pregame odds range 
-    - in game time range 
-    - in game [underdog - favorite] margin
-    - favored team ids  
-    - underdog team ids 
-    - months 
-    - seasons 
-    - favorite back to back (bonus) 
-    - underdog back to back (bonus)
-
+Play By Play CSV Column Indices:
+0: game_id
+1: seconds_elapsed
+2: away_score
+3: home_score
+4: underdog_score
+5: favorite_score
+6: favorite_margin
 """
 
-import AnalysisConfig as cfg
+import analysis_config as cfg
 from enum import Enum
 import csv
 import numpy as np 
 
-GAME_SUMMARY_CSV = 'go-game-data.csv'
-PLAY_BY_PLAY_CSV = 'go-play-by-play-data.csv'
+
+# CSV_DIRECTORY = '../csvs'
+CSV_DIRECTORY = '/Users/ericwhitehead/Desktop/clag/nba-project-post-mv/csvs'
+GAME_SUMMARY_CSV = 'games_summary_data.csv'
+PLAY_BY_PLAY_CSV = 'game_play_by_play_data.csv'
 
 class AnalysisType(Enum):
     INGAME = 1
@@ -65,34 +71,35 @@ class FilterField(Enum):
 
 # Game Summary CSV row lookups 
 def getUnderdogId(row):
-    return row[4] if float(row[9]) > 0 else row[6]
+    return row[5] if float(row[10]) > 0 else row[7]
 
 def getFavoriteId(row):
-    return row[4] if float(row[9]) <= 0 else row[6]
+    return row[5] if float(row[10]) <= 0 else row[7]
 
 def getFavoriteSpread(row):
-    return abs(float(row[9]))
+    return abs(float(row[10]))
 
 def getFavoriteMoneyline(row):
-    return float(row[7]) if float(row[9]) <= 0 else float(row[8])
+    return float(row[8]) if float(row[10]) <= 0 else float(row[9])
 
 # Play by Play CSV row lookups
 def getFavoriteMargin(playsRow):
-    return int(playsRow[4]) - int(playsRow[5])
+    return int(playsRow[5]) - int(playsRow[6])
 
 def getTotal(playsRow):
-    return int(playsRow[4]) + int(playsRow[5])
+    return int(playsRow[5]) + int(playsRow[6])
 
 
 class GameFilterFields(FilterField):
-    E_AWAY_TEAM_IDS = (lambda row: row[4], cfg.AWAY_TEAM_IDS, FilterType.EQUALITY)
-    E_HOME_TEAM_IDS = (lambda row: row[6], cfg.HOME_TEAM_IDS, FilterType.EQUALITY) 
+    E_AWAY_TEAM_IDS = (lambda row: row[5], cfg.AWAY_TEAM_IDS, FilterType.EQUALITY)
+    E_HOME_TEAM_IDS = (lambda row: row[7], cfg.HOME_TEAM_IDS, FilterType.EQUALITY) 
     E_UNDERDOG_TEAM_IDS = (getUnderdogId, cfg.UNDERDOG_TEAM_IDS, FilterType.EQUALITY)
     E_FAVORITE_TEAM_IDS = (getFavoriteId, cfg.FAVORITE_TEAM_IDS, FilterType.EQUALITY)
     E_FAVORITE_SPREAD_RANGE = (getFavoriteSpread, cfg.PREGAME_FAVORITE_SPREAD_RANGE, FilterType.IN_RANGE)
     E_FAVORITE_ML_RANGE = (getFavoriteMoneyline, cfg.PREGAME_FAVORITE_ML_RANGE, FilterType.IN_RANGE)
-    E_MONTHS = (lambda row: int(row[1][2:4]), cfg.MONTHS, FilterType.EQUALITY)
-    # E_SEASONS = (lambda row: row[1], SEASONS, FilterType.EQUALITY)
+    E_TOTAL_RANGE = (lambda row: float(row[12]), cfg.PREGAME_TOTAL_RANGE, FilterType.IN_RANGE)
+    E_MONTHS = (lambda row: int(row[2][5:7]), cfg.MONTHS, FilterType.EQUALITY)
+    E_SEASONS = (lambda row: row[1], cfg.SEASONS, FilterType.EQUALITY)
 
 class PlayByPlayFilterFields(FilterField): 
     E_IN_GAME_ELAPSED_SECONDS_RANGE = (lambda row: int(row[1]), cfg.IN_GAME_ELAPSED_SECONDS_RANGE, FilterType.IN_RANGE)
@@ -114,7 +121,8 @@ def checkCriteria(row, valueGetter, filterValues, filterType):
         
 def loadCsvAndFilter(csvName, filterEnum):
     filteredRows = []
-    with open(f'/Users/ericwhitehead/Desktop/clag/nba-project-post-mv/{csvName}', mode ='r') as file:
+
+    with open(f'{CSV_DIRECTORY}/{csvName}', mode ='r') as file:
         rows = csv.reader(file)
         
         next(rows)
@@ -124,33 +132,48 @@ def loadCsvAndFilter(csvName, filterEnum):
 
     return filteredRows
 
+def printFilters():
+    print("PREGAME FILTER FIELDS:")
+    for filt in GameFilterFields:
+        if filt.value:
+            print(f'{filt.name[2:]}={filt.value}')
+
+    print("\nINGAME FILTER FIELDS:")
+    for filt in PlayByPlayFilterFields:
+        if filt.value:
+            print(f'{filt.name[2:]}={filt.value}')
+    
+
 def printStatistics(data):
     print(f'Sample size: {len(data)} games \n')
-    print(f'Average: {np.average(data)}')
-    print('Deciles -  ')
-    for dec in [10, 20, 30, 40, 50, 60, 70, 80, 90]:
-        print(f'{dec}% {round(np.percentile(data, dec), 2)} pts')
+    if len(data) > 0:
+        print(f'Average: {round(np.average(data), 2)} pts')
+        print('Deciles -  ')
+        for dec in [10, 20, 30, 40, 50, 60, 70, 80, 90]:
+            print(f'{dec}% {round(np.percentile(data, dec), 2)} pts')
+
 
 def processResults(gameCsvRows):
     totals = []
     favoriteMargins = []
 
     for game in gameCsvRows:
-        favScore = int(game[11]) if float(game[9]) <= 0 else int(game[12])
-        dogScore = int(game[12]) if float(game[9]) < 0 else int(game[11])
+        favScore = int(game[13]) if float(game[10]) <= 0 else int(game[14])
+        dogScore = int(game[14]) if float(game[10]) < 0 else int(game[13])
         total = favScore + dogScore
         totals.append(total)
         favoriteMargins.append(favScore - dogScore)
- 
-    print('ENDGAME TOTALS ANALYSIS') 
+
+    printFilters()
+
+    print('\nENDGAME TOTALS ANALYSIS') 
     printStatistics(totals)
 
-    print('\n ENDGAME FAVORITE MARGINS ANALYSIS')
+    print('\nENDGAME FAVORITE MARGINS ANALYSIS')
     printStatistics(favoriteMargins)
 
 
 if __name__ == '__main__':
-
     analysisType = AnalysisType.INGAME
     gameCsvRows = loadCsvAndFilter(GAME_SUMMARY_CSV, GameFilterFields)
 
@@ -159,4 +182,3 @@ if __name__ == '__main__':
         gameCsvRows = list(filter(lambda row: row[0] in playsCsvGameIds, gameCsvRows))
 
     processResults(gameCsvRows)
-

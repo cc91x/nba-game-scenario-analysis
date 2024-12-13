@@ -2,14 +2,33 @@ package helpers
 
 import "go.mongodb.org/mongo-driver/bson"
 
-type CleanedGame struct {
-	GameId     string
-	Date       string
-	StartTime  string
-	AwayTeamId string
-	HomeTeamId string
-	PlayByPlay []PlayByPlay
-	SeasonId   string
+/* Config file */
+type NbaConfig struct {
+	Database struct {
+		Schema string `yaml:"schema"`
+		Host   string `yaml:"host"`
+		Port   string `yaml:"port"`
+	} `yaml:"database"`
+	OddsApi struct {
+		BaseUrl string `yaml:"baseUrl"`
+		Key     string `yaml:"key"`
+	} `yaml:"oddsApi"`
+}
+
+/* Raw game in DB */
+type RawNbaGame struct {
+	Resource       string     `bson:"resource"`
+	Parameters     Parameters `bson:"parameters"`
+	PlayByPlayRows bson.A     `bson:"rawPlayByPlay"`
+	Date           string     `bson:"date"`
+	Matchup        string     `bson:"matchup"`
+	SeasonId       string     `bson:"seasonId"`
+}
+
+type Parameters struct {
+	GameId     string `bson:"GameID"`
+	StarPeriod int32  `bson:"StartPeriod"`
+	EndPeriod  int32  `bson:"EndPeriod"`
 }
 
 type RawPlay struct {
@@ -19,46 +38,38 @@ type RawPlay struct {
 	Score         string
 }
 
+/* Cleaned game, after processing */
+type CleanedGame struct {
+	GameId     string       `bson:"gameId"`
+	Date       string       `bson:"date"`
+	StartTime  string       `bson:"startTime"`
+	AwayTeamId string       `bson:"awayTeamId"`
+	HomeTeamId string       `bson:"homeTeamId"`
+	PlayByPlay []PlayByPlay `bson:"playByPlay"`
+	SeasonId   string       `bson:"seasonId"`
+}
+
 type PlayByPlay struct {
 	SecondsElapsed int32
 	AwayScore      int
 	HomeScore      int
 }
 
-// These types will work for loading the game data
-type RawNbaGame struct {
-	Resource       string     `bson:"resource"`
-	Parameters     Parameters `bson:"parameters"`
-	PlayByPlayRows bson.A     `bson:"raw-play-by-play"` // should this just be a bson? ... or
-	Date           string     `bson:"date"`
-	Matchup        string     `bson:"matchup"` // this should be "Bos vs Mia", copied from the season data script
+/* Team metadata in DB */
+type TeamMetadata struct {
+	TeamId          int    `bson:"teamId"`
+	TeamName        string `bson:"teamName"`
+	TeamAbbreviaton string `bson:"teamAbbreviation"`
 }
 
-type Parameters struct {
-	GameId     string `bson:"GameID"`
-	StarPeriod int32  `bson:"StartPeriod"`
-	EndPeriod  int32  `bson:"EndPeriod"`
-}
-
-type TeamIdMapping struct {
-	TeamId          int    `bson:"team-id"`
-	TeamName        string `bson:"team-name"`
-	TeamAbbreviaton string `bson:"team-abbreviation"`
-}
-
-// hmmm this should be in the shape of the data returned, not mongo response
-// looks like used here - https://tutorialedge.net/golang/consuming-restful-api-with-go/
-/*
-type oddsResponse struct {
-}
-*/
+/* Response from odds source API */
 type RawOddsResponse struct {
 	Timestamp         string     `json:"timestamp" bson:"timestamp"`
 	PreviousTimestamp string     `json:"previous_timestamp" bson:"previous_timestamp"`
 	NextTimestamp     string     `json:"next_timestamp" bson:"next_timestamp"`
 	Data              []OddsData `json:"data" bson:"data"`
-	Date              string     `json:"date-str" bson:"date-str"`
-	UtcHour           int        `json:"utc-hour" bson:"utc-hour"`
+	Date              string     `json:"date" bson:"date"`
+	UtcHour           int        `json:"utcHour" bson:"utcHour"`
 }
 
 type OddsData struct {
@@ -90,14 +101,12 @@ type Outcome struct {
 	Point float64 `json:"point" bson:"point"`
 }
 
+/* Cleaned odds data, after processing */
 type CleanedOdds struct {
-	GameId string `bson:"gameid"`
-	// Date      string - this is on the game id
-	// StartTime string - this is on the game id
-	// seasonId string - this is on the game id
+	GameId      string      `bson:"gameId"`
 	Bookmaker   string      `bson:"bookmaker"`
-	MoneyLine   MoneyLine   `bson:"moneyline"`
-	PointSpread PointSpread `bson:"pointspread"`
+	MoneyLine   MoneyLine   `bson:"moneyLine"`
+	PointSpread PointSpread `bson:"pointSpread"`
 	Total       Total       `bson:"total"`
 }
 
@@ -119,30 +128,29 @@ type PointSpread struct {
 	HomePrice  float32 `bson:"homePrice"`
 }
 
-// game-id,game-date,start-time,away-team-init,away-team-id,home-team-init,home-team-id,away-ml,away-spread,home-ml,home-spread,total,away-final-score,home-final-score
-
+/* CSV columns */
 type GameCsv struct {
 	GameId               string
+	SeasonId             string
 	Date                 string
 	StartTime            string
 	AwayTeamAbbreviation string
 	AwayTeamId           string
 	HomeTeamAbbreviation string
 	HomeTeamId           string
-	AwayMl               string // float32
-	HomeMl               string // float32
-	AwaySpread           string // float32
-	HomeSpread           string // float32
-	AwayFinalScore       string // float32
-	HomeFinalScore       string // float32
+	AwayMl               string
+	HomeMl               string
+	AwaySpread           string
+	HomeSpread           string
+	AwayFinalScore       string
+	HomeFinalScore       string
 }
 
-// game_id,seconds_elapsed,away_score,home_score,underdog_score,favorite_score
 type PlayByPlayCsv struct {
 	GameId         string
-	SecondsElapsed string // int
-	AwayScore      string // int
-	HomeScore      string // int
-	UnderdogScore  string // int
-	FavoriteScore  string // int
+	SecondsElapsed string
+	AwayScore      string
+	HomeScore      string
+	UnderdogScore  string
+	FavoriteScore  string
 }
